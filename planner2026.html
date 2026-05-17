@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dagplanner 2026</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#006077">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dagplanner">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:#1C829E; --orange:#EB6334; --green:#008972;
+  --yellow:#FDCE43; --darkblue:#006077; --grey:#F2F2F2;
+  --text:#1a1a1a; --border:#dde3e7;
+  --c-locatie:#1C829E; --c-extern:#EB6334; --c-online:#008972;
+  --c-admin:#d4a000; --c-telefoon:#8B5CF6; --c-reistijd:#E07B39; --c-pauze:#8fa8b8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-height:100vh;}
+.topnav{background:var(--darkblue);padding:8px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:300;box-shadow:0 2px 10px rgba(0,0,0,.3);}
+.topnav-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:.5px;margin-right:4px;}
+.month-tabs{display:flex;gap:4px;}
+.month-tab{font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.7);cursor:pointer;transition:all .15s;}
+.month-tab:hover{background:rgba(255,255,255,.15);color:white;}
+.month-tab.active{background:var(--orange);border-color:var(--orange);color:white;}
+.day-nav{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.nav-btn{background:rgba(255,255,255,.15);border:none;color:white;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.nav-btn:hover{background:rgba(255,255,255,.3);}
+.day-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;color:var(--yellow);min-width:160px;text-align:center;}
+.topnav-btns{display:flex;gap:5px;}
+.btn{font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-print{background:var(--blue);color:white;}
+.btn-outlook{background:#0078D4;color:white;}
+.btn-clear{background:rgba(255,255,255,.12);color:white;border:1px solid rgba(255,255,255,.25);}
+.btn-reset{background:rgba(255,80,40,.35);color:white;border:1px solid rgba(255,120,80,.4);}
+.import-tip{position:fixed;bottom:24px;right:24px;z-index:9999;max-width:300px;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.import-tip-inner{background:white;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:18px 20px;border-top:4px solid var(--blue);}
+.import-tip-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--darkblue);margin-bottom:10px;}
+.import-tip ol{padding-left:18px;font-size:12px;line-height:1.75;color:#333;margin:0;}
+.import-tip li{margin-bottom:2px;}
+.import-tip button{margin-top:12px;font-family:'Barlow',sans-serif;font-size:11px;background:var(--grey);border:1.5px solid var(--border);border-radius:4px;padding:4px 10px;cursor:pointer;float:right;}
+.hours-bar{background:white;border-bottom:2px solid var(--border);padding:5px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.h-label{font-size:10px;color:#7a9aaa;font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+.h-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--darkblue);}
+.h-div{width:1px;height:20px;background:var(--border);}
+.time-picker{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--darkblue);border:none;border-bottom:1.5px dashed var(--border);outline:none;background:transparent;width:52px;text-align:center;}
+.page-wrap{padding:12px 16px 24px;max-width:820px;margin:0 auto;}
+.month-panel{background:white;box-shadow:0 2px 10px rgba(0,0,0,.1);border-radius:0 0 5px 5px;margin-bottom:12px;overflow:hidden;}
+.mpanel-hdr{background:var(--blue);color:white;padding:5px 14px;display:flex;justify-content:space-between;align-items:center;}
+.mpanel-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.mpanel-total{font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--yellow);font-weight:700;}
+.month-cal{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);}
+.cal-hdr{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#9aabb5;padding:3px;text-align:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--grey);}
+.cal-day{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:3px 4px;min-height:34px;cursor:pointer;transition:background .1s;}
+.cal-day:hover{background:rgba(28,130,158,.07);}
+.cal-day.sel{background:rgba(28,130,158,.18);outline:2px solid var(--blue);outline-offset:-2px;}
+.cal-day.today{background:rgba(253,206,67,.15);}
+.cal-day.empty{background:var(--grey);cursor:default;opacity:.4;}
+.cal-day.weekend .cal-num{color:#b0bec5;}
+.cal-num{font-size:10px;font-weight:600;color:var(--darkblue);}
+.cal-hours{font-size:8px;color:var(--green);font-weight:700;margin-top:1px;}
+.page{background:white;box-shadow:0 4px 22px rgba(0,0,0,.12);display:flex;flex-direction:column;}
+.hdr{background:var(--darkblue);padding:12px 18px 10px;display:flex;justify-content:space-between;align-items:flex-end;}
+.hdr-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:.5px;}
+.hdr-sub{font-size:9.5px;color:rgba(255,255,255,.55);margin-top:2px;}
+.hdr-right{text-align:right;}
+.hdr-date{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--yellow);}
+.hdr-day{font-size:9px;color:rgba(255,255,255,.45);margin-top:2px;}
+.hdr-loc{font-size:9px;color:var(--yellow);opacity:.8;margin-top:3px;font-weight:600;}
+.accent{height:4px;background:linear-gradient(to right,var(--orange),var(--blue) 55%,var(--green));}
+.legend{background:var(--grey);border-bottom:1.5px solid var(--border);padding:4px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.leg-title{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#7a9aaa;white-space:nowrap;}
+.leg-items{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.leg-item{display:flex;align-items:center;gap:3px;font-size:9px;color:#444;font-weight:500;}
+.leg-sw{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.body{display:flex;flex:1;}
+.sched{flex:1;border-right:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.col-hdr{background:var(--blue);color:white;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;padding:4px 9px;display:flex;justify-content:space-between;align-items:center;}
+.col-hint{font-size:8px;opacity:.65;font-weight:400;letter-spacing:.2px;}
+.time-block{display:flex;align-items:stretch;border-bottom:1px solid #edf0f2;min-height:22px;position:relative;transition:background .1s;}
+.time-block:nth-child(4n+1){background:rgba(28,130,158,.025);}
+.time-block.hour-start{border-bottom:1.5px solid rgba(28,130,158,.3);}
+.time-block.hour-start .t-lbl{color:var(--darkblue);font-weight:700;}
+.time-block[data-cat="locatie"] {background:rgba(28,130,158,.10)!important;border-left:3px solid var(--c-locatie);}
+.time-block[data-cat="extern"]  {background:rgba(235,99,52,.09)!important; border-left:3px solid var(--c-extern);}
+.time-block[data-cat="online"]  {background:rgba(0,137,114,.09)!important; border-left:3px solid var(--c-online);}
+.time-block[data-cat="admin"]   {background:rgba(212,160,0,.10)!important; border-left:3px solid var(--c-admin);}
+.time-block[data-cat="telefoon"]{background:rgba(139,92,246,.09)!important;border-left:3px solid var(--c-telefoon);}
+.time-block[data-cat="reistijd"]{background:rgba(224,123,57,.10)!important;border-left:3px solid var(--c-reistijd);}
+.time-block[data-cat="pauze"]   {background:rgba(143,168,184,.12)!important;border-left:3px solid var(--c-pauze);}
+.time-block[data-cat="pauze"] .t-inp{color:#8fa8b8;font-style:italic;}
+.t-lbl{width:40px;min-width:40px;font-size:9px;font-weight:400;color:#9aabb5;padding:3px 3px 0 6px;line-height:1;user-select:none;flex-shrink:0;cursor:pointer;transition:color .1s;}
+.t-lbl:hover{color:var(--blue);}
+.cat-tag{font-size:7px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border-radius:2px;padding:1px 3px;color:white;white-space:nowrap;flex-shrink:0;margin:auto 2px auto 0;cursor:pointer;user-select:none;display:none;}
+.time-block[data-cat] .cat-tag{display:inline-block;}
+.time-block[data-cat="locatie"]  .cat-tag{background:var(--c-locatie);}
+.time-block[data-cat="extern"]   .cat-tag{background:var(--c-extern);}
+.time-block[data-cat="online"]   .cat-tag{background:var(--c-online);}
+.time-block[data-cat="admin"]    .cat-tag{background:var(--c-admin);color:#333;}
+.time-block[data-cat="telefoon"] .cat-tag{background:var(--c-telefoon);}
+.time-block[data-cat="reistijd"] .cat-tag{background:var(--c-reistijd);}
+.time-block[data-cat="pauze"]    .cat-tag{background:var(--c-pauze);}
+.t-inp{flex:1;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:12px;color:var(--text);padding:3px 6px;background:transparent;line-height:1.4;min-height:22px;resize:none;overflow:hidden;}
+.t-inp::placeholder{color:#c8d4db;font-style:italic;}
+.t-inp:focus{background:rgba(253,206,67,.09);}
+.w-dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0;margin:auto 3px auto 0;cursor:pointer;display:none;}
+.time-block.worked .w-dot{display:block;}
+.time-block:hover .w-dot{display:block;opacity:.3;}
+.time-block.worked:hover .w-dot{opacity:1;}
+.et-badge{font-size:8px;font-weight:700;color:var(--darkblue);background:rgba(0,96,119,.1);border-radius:3px;padding:1px 4px;margin-left:3px;white-space:nowrap;flex-shrink:0;}
+.rr-badge{font-size:8px;font-weight:700;color:#7c4dac;background:rgba(139,92,246,.12);border-radius:3px;padding:1px 4px;margin-left:3px;white-space:nowrap;flex-shrink:0;}
+.picker{position:absolute;left:40px;top:100%;z-index:200;background:white;border:1.5px solid var(--border);border-radius:5px;box-shadow:0 4px 14px rgba(0,0,0,.13);display:none;flex-direction:column;padding:3px;min-width:215px;}
+.picker.open{display:flex;}
+.p-hdr{font-size:8px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#9aabb5;padding:4px 7px 2px;}
+.p-div{height:1px;background:var(--border);margin:3px 0;}
+.p-opt{display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:3px;cursor:pointer;font-size:10.5px;font-weight:500;color:var(--text);transition:background .1s;}
+.p-opt:hover{background:var(--grey);}
+.p-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.p-opt.clr{color:#9aabb5;font-style:italic;font-weight:400;}
+.p-opt.clr .p-dot{background:var(--border);}
+.et-row{display:flex;align-items:center;gap:4px;padding:2px 7px 5px;}
+.et-sel{flex:1;font-family:'Barlow',sans-serif;font-size:10.5px;border:1.5px solid var(--border);border-radius:4px;padding:3px 5px;color:var(--darkblue);background:white;outline:none;}
+.et-clr-btn{background:none;border:1.5px solid var(--border);border-radius:4px;font-size:10px;color:#aaa;cursor:pointer;padding:2px 5px;}
+.et-clr-btn:hover{border-color:var(--orange);color:var(--orange);}
+.et-apply-btn{background:var(--green);color:white;border:none;border-radius:4px;font-size:10.5px;font-weight:700;cursor:pointer;padding:2px 7px;flex-shrink:0;}
+.et-apply-btn:hover{opacity:.85;}
+.rr-wrap{display:flex;flex-direction:column;gap:3px;padding:2px 7px 6px;}
+.rr-fs{width:100%;font-family:'Barlow',sans-serif;font-size:10.5px;border:1.5px solid var(--border);border-radius:4px;padding:3px 5px;color:var(--darkblue);background:white;outline:none;}
+.rr-end{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.rr-ets{flex:1;min-width:90px;font-family:'Barlow',sans-serif;font-size:10.5px;border:1.5px solid var(--border);border-radius:4px;padding:3px 5px;color:var(--darkblue);background:white;outline:none;}
+.rr-cnt{width:56px;font-family:'Barlow',sans-serif;font-size:10.5px;border:1.5px solid var(--border);border-radius:4px;padding:3px 5px;color:var(--darkblue);background:white;outline:none;}
+.rr-until{flex:1;font-family:'Barlow',sans-serif;font-size:10px;border:1.5px solid var(--border);border-radius:4px;padding:3px 5px;color:var(--darkblue);background:white;outline:none;}
+.rr-apply{font-family:'Barlow',sans-serif;font-size:10.5px;font-weight:700;background:var(--blue);color:white;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;width:100%;margin-top:2px;}
+/* Locatie */
+.loc-row{display:flex;flex-direction:column;gap:3px;padding:2px 7px 5px;position:relative;}
+.loc-inp{font-family:'Barlow',sans-serif;font-size:11px;border:1.5px solid var(--border);border-radius:4px;padding:4px 7px;outline:none;color:var(--darkblue);}
+.loc-inp:focus{border-color:var(--blue);}
+.loc-suggestions{position:absolute;top:28px;left:7px;right:7px;background:white;border:1.5px solid var(--border);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:500;display:none;}
+.loc-sug-item{display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:10.5px;cursor:pointer;transition:background .1s;}
+.loc-sug-item:hover{background:var(--grey);}
+.loc-sug-icon{font-size:12px;flex-shrink:0;}
+.loc-apply-btn{font-family:'Barlow',sans-serif;font-size:10.5px;font-weight:700;background:var(--green);color:white;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:2px;}
+.loc-apply-btn:hover{opacity:.88;}
+.loc-badge{font-size:8.5px;font-weight:600;color:var(--darkblue);background:rgba(28,130,158,.1);border-radius:3px;padding:1px 5px;margin-left:3px;white-space:nowrap;flex-shrink:0;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+.right{width:215px;flex-shrink:0;display:flex;flex-direction:column;}
+.task-sec{display:flex;flex-direction:column;border-bottom:1.5px solid var(--border);}
+.task-hdr{display:flex;align-items:center;gap:5px;padding:3px 7px;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:white;}
+.t-badge{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;}
+.prio-h .task-hdr{background:var(--orange);}
+.prio-m .task-hdr{background:var(--blue);}
+.prio-l .task-hdr{background:var(--green);}
+.task-list{padding:2px 0;}
+.task-item{display:flex;align-items:flex-start;padding:3px 7px;gap:7px;border-bottom:1px solid #f0f3f5;min-height:26px;}
+.task-item:last-child{border-bottom:none;}
+.t-cb{
+  width:16px;height:16px;flex-shrink:0;margin-top:4px;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  border:2px solid var(--border);border-radius:4px;
+  background:white;position:relative;transition:all .15s;
+}
+.t-cb:hover{border-color:var(--blue);}
+.t-cb:checked{background:var(--blue);border-color:var(--blue);}
+.t-cb:checked::after{
+  content:'';position:absolute;
+  left:3px;top:0px;width:5px;height:9px;
+  border:2px solid white;border-top:none;border-left:none;
+  transform:rotate(45deg);
+}
+.t-txt{flex:1;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:12px;color:var(--text);padding:3px 0;background:transparent;resize:none;line-height:1.4;overflow:hidden;min-height:20px;}
+.t-txt::placeholder{color:#c8d4db;font-style:italic;}
+.t-txt:focus{background:rgba(253,206,67,.08);border-radius:2px;padding:3px 3px;}
+.t-txt.done{text-decoration:line-through;color:#aab5bb;}
+.add-btn{display:flex;align-items:center;gap:3px;padding:2px 7px 4px;font-size:9.5px;font-weight:600;opacity:.6;transition:opacity .15s;background:none;border:none;font-family:'Barlow',sans-serif;cursor:pointer;}
+.add-btn:hover{opacity:1;}
+.add-task-btn{color:var(--blue);}
+.comm-sec{display:flex;flex-direction:column;border-bottom:1.5px solid var(--border);}
+.comm-hdr{display:flex;align-items:center;gap:5px;padding:3px 7px;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:white;}
+.comm-bellen   .comm-hdr{background:#5573a0;}
+.comm-mailen   .comm-hdr{background:#246060;}
+.comm-bespreken .comm-hdr{background:#70508a;}
+.comm-list{padding:2px 0;}
+.comm-item{display:flex;align-items:flex-start;padding:3px 7px;gap:7px;border-bottom:1px solid #f0f3f5;min-height:24px;}
+.comm-item:last-child{border-bottom:none;}
+.c-cb{
+  width:15px;height:15px;flex-shrink:0;margin-top:4px;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  border:2px solid var(--border);border-radius:50%;
+  background:white;position:relative;transition:all .15s;
+}
+.c-cb:hover{border-color:var(--green);}
+.c-cb:checked{background:var(--green);border-color:var(--green);}
+.c-cb:checked::after{
+  content:'';position:absolute;
+  left:2px;top:-1px;width:5px;height:8px;
+  border:2px solid white;border-top:none;border-left:none;
+  transform:rotate(45deg);
+}
+.c-txt{flex:1;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:11.5px;color:var(--text);padding:2px 0;background:transparent;resize:none;line-height:1.4;overflow:hidden;min-height:18px;}
+.c-txt::placeholder{color:#c8d4db;font-style:italic;}
+.c-txt.done{text-decoration:line-through;color:#aab5bb;}
+.notes-sec{flex:1;display:flex;flex-direction:column;}
+.notes-hdr{background:var(--darkblue);color:white;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;}
+.notes-area{flex:1;width:100%;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--text);padding:5px 9px;resize:none;min-height:60px;line-height:1.5;background:transparent;}
+.notes-area::placeholder{color:#c8d4db;font-style:italic;}
+.footer{border-top:2px solid var(--border);padding:5px 14px;display:flex;justify-content:space-between;align-items:center;background:var(--grey);flex-wrap:wrap;gap:5px;}
+.mood-wrap{display:flex;gap:5px;align-items:center;font-size:10px;color:#7a9aaa;font-weight:500;}
+.mood-btn{width:22px;height:22px;border:1.5px solid var(--border);border-radius:50%;background:white;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.mood-btn:hover,.mood-btn.on{border-color:var(--orange);background:rgba(235,99,52,.08);}
+.intent-wrap{flex:1;text-align:center;}
+.intent-lbl{font-size:8px;color:#9aabb5;font-weight:700;letter-spacing:.8px;text-transform:uppercase;display:block;margin-bottom:1px;}
+.intent-inp{font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--darkblue);font-weight:500;border:none;border-bottom:1px dashed var(--border);outline:none;text-align:center;background:transparent;width:170px;padding:1px 4px;}
+.intent-inp::placeholder{color:#c8d4db;font-style:italic;font-weight:400;}
+@media print{body{background:white;}.topnav,.hours-bar,.month-panel{display:none;}.page-wrap{padding:0;}.page{box-shadow:none;}.picker{display:none!important;}.cat-tag{display:inline-block!important;}.add-btn,.w-dot{display:none!important;}@page{size:A4 portrait;margin:0;}}
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-title">Dagplanner</div>
+  <div class="month-tabs">
+    <button class="month-tab" onclick="gotoMonth(4)">Mei</button>
+    <button class="month-tab" onclick="gotoMonth(5)">Juni</button>
+    <button class="month-tab" onclick="gotoMonth(6)">Juli</button>
+  </div>
+  <div class="day-nav">
+    <button class="nav-btn" onclick="shiftDay(-1)">‹</button>
+    <div class="day-label" id="dayLabel">–</div>
+    <button class="nav-btn" onclick="shiftDay(1)">›</button>
+  </div>
+  <div class="topnav-btns">
+    <button class="btn btn-print" onclick="window.print()">🖨 Afdrukken</button>
+    <button class="btn btn-outlook" onclick="exportICS()">📅 Outlook</button>
+    <button class="btn btn-clear" onclick="clearCurDay()">✕ Dag wissen</button>
+    <button class="btn btn-reset" onclick="fullReset()">↺ Reset alles</button>
+  </div>
+</div>
+
+<div class="hours-bar">
+  <span class="h-label">Start</span>
+  <input class="time-picker" id="wStart" type="time" value="08:00" onchange="autoSave()">
+  <div class="h-div"></div>
+  <span class="h-label">Einde</span>
+  <input class="time-picker" id="wEnd" type="time" value="16:30" onchange="autoSave()">
+  <div class="h-div"></div>
+  <span class="h-label">Vandaag</span><span class="h-val" id="hToday">0u</span>
+  <div class="h-div"></div>
+  <span class="h-label">Week</span><span class="h-val" id="hWeek">0u</span>
+  <div class="h-div"></div>
+  <span class="h-label">Maand</span><span class="h-val" id="hMonth">0u</span>
+</div>
+
+<div class="page-wrap">
+<div class="month-panel">
+  <div class="mpanel-hdr"><span class="mpanel-title" id="mTitle">–</span><span class="mpanel-total" id="mTotal">–</span></div>
+  <div class="month-cal" id="mCal"></div>
+</div>
+<div class="page">
+  <div class="hdr">
+    <div><div class="hdr-title">Dagplanner</div><div class="hdr-sub">07:30 – 22:00 · kwartierindeling</div></div>
+    <div class="hdr-right">
+      <div class="hdr-date" id="hDate">–</div>
+      <div class="hdr-day" id="hDay">–</div>
+      <div class="hdr-loc" id="hLoc"></div>
+    </div>
+  </div>
+  <div class="accent"></div>
+  <div class="legend">
+    <span class="leg-title">Legenda</span>
+    <div class="leg-items">
+      <div class="leg-item"><div class="leg-sw" style="background:#1C829E"></div>Op locatie</div>
+      <div class="leg-item"><div class="leg-sw" style="background:#EB6334"></div>Extern</div>
+      <div class="leg-item"><div class="leg-sw" style="background:#008972"></div>Online</div>
+      <div class="leg-item"><div class="leg-sw" style="background:#d4a000;outline:1px solid #ccc"></div>Administratief</div>
+      <div class="leg-item"><div class="leg-sw" style="background:#8B5CF6"></div>Telefonisch</div>
+      <div class="leg-item"><div class="leg-sw" style="background:#E07B39"></div>Reistijd</div>
+      <div class="leg-item"><div class="leg-sw" style="background:#8fa8b8"></div>Pauze</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="sched">
+      <div class="col-hdr"><span>◷ Dagindeling</span><span class="col-hint">Klik tijdstip → type instellen</span></div>
+      <div class="time-grid" id="tGrid"></div>
+    </div>
+    <div class="right">
+      <div class="task-sec prio-h"><div class="task-hdr"><div class="t-badge">!</div>Hoge prioriteit</div><div class="task-list" id="tl-hoog"></div><button class="add-btn add-task-btn" onclick="addTask('hoog')">＋ Taak</button></div>
+      <div class="task-sec prio-m"><div class="task-hdr"><div class="t-badge">2</div>Middel prioriteit</div><div class="task-list" id="tl-midden"></div><button class="add-btn add-task-btn" onclick="addTask('midden')">＋ Taak</button></div>
+      <div class="task-sec prio-l"><div class="task-hdr"><div class="t-badge">3</div>Lage prioriteit</div><div class="task-list" id="tl-laag"></div><button class="add-btn add-task-btn" onclick="addTask('laag')">＋ Taak</button></div>
+      <div class="comm-sec comm-bellen"><div class="comm-hdr">📞 Bellen</div><div class="comm-list" id="cl-bellen"></div><button class="add-btn" style="color:#5573a0" onclick="addComm('bellen')">＋ Toevoegen</button></div>
+      <div class="comm-sec comm-mailen"><div class="comm-hdr">✉ Mailen</div><div class="comm-list" id="cl-mailen"></div><button class="add-btn" style="color:#246060" onclick="addComm('mailen')">＋ Toevoegen</button></div>
+      <div class="comm-sec comm-bespreken"><div class="comm-hdr">💬 Bespreken</div><div class="comm-list" id="cl-bespreken"></div><button class="add-btn" style="color:#70508a" onclick="addComm('bespreken')">＋ Toevoegen</button></div>
+      <div class="notes-sec"><div class="notes-hdr">✎ Notities</div><textarea class="notes-area" id="notesArea" placeholder="Aantekeningen, follow-ups…"></textarea></div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="mood-wrap"><span>Stemming:</span>
+      <div class="mood-btn" onclick="setMood(this)">😊</div>
+      <div class="mood-btn" onclick="setMood(this)">😐</div>
+      <div class="mood-btn" onclick="setMood(this)">😴</div>
+      <div class="mood-btn" onclick="setMood(this)">😤</div>
+    </div>
+    <div class="intent-wrap"><span class="intent-lbl">Intentie van de dag</span><input class="intent-inp" id="intentInp" placeholder="Waar focus ik vandaag op?"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const YEAR=2026, MONTHS=[4,5,6];
+const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const MONTHS_NL=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const CATS=[
+  {key:'locatie',label:'Overleg op locatie',short:'Locatie',color:'#1C829E'},
+  {key:'extern', label:'Overleg extern',    short:'Extern', color:'#EB6334'},
+  {key:'online', label:'Online overleg',    short:'Online', color:'#008972'},
+  {key:'admin',  label:'Administratieve taak',short:'Admin',color:'#d4a000'},
+  {key:'telefoon',label:'Telefonisch contact',short:'Tel.',color:'#8B5CF6'},
+  {key:'reistijd',label:'Reistijd',          short:'Reis', color:'#E07B39'},
+  {key:'pauze',  label:'Pauze',              short:'Pauze',color:'#8fa8b8'},
+];
+const WL={1:'📍 Schoonhoven (WZ)',2:'📍 Schoonhoven (WZ)',3:'📍 Utrecht — BiOND',4:'📍 Schoonhoven (WZ)',5:'📍 Schoonhoven (WZ, vm)'};
+
+let curDate=null, curMonth=4;
+const sk=d=>'dp26_'+d;
+const toISO=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const isoToday=()=>{const t=new Date();return toISO(t.getFullYear(),t.getMonth(),t.getDate());};
+const t2m=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m;};
+const m2s=m=>{if(m<=0)return'0u';const h=Math.floor(m/60),r=m%60;return r?`${h}u ${r}m`:`${h}u`;};
+
+/* GRID */
+function buildGrid(){
+  const g=document.getElementById('tGrid'); g.innerHTML='';
+  for(let h=7;h<=21;h++){
+    for(let m=(h===7?30:0);m<=45;m+=15){
+      const lbl=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      const row=document.createElement('div');
+      row.className='time-block'+(m===0?' hour-start':'');
+      row.dataset.time=lbl;
+      const tl=document.createElement('span'); tl.className='t-lbl'; tl.textContent=lbl; tl.title='Klik voor type';
+      tl.onclick=e=>{e.stopPropagation();openPicker(row);};
+      const ct=document.createElement('span'); ct.className='cat-tag';
+      ct.onclick=e=>{e.stopPropagation();openPicker(row);};
+      const wd=document.createElement('div'); wd.className='w-dot'; wd.title='Markeer als gewerkt';
+      wd.onclick=e=>{e.stopPropagation();row.classList.toggle('worked');autoSave();updateHours();};
+      const ta=document.createElement('textarea'); ta.className='t-inp'; ta.rows=1;
+      ta.id='sl-'+lbl.replace(':',''); ta.dataset.time=lbl;
+      ta.oninput=function(){this.style.height='auto';this.style.height=Math.max(22,this.scrollHeight)+'px';autoSave();};
+      row.append(tl,ct,wd,ta,makePicker(row,ct));
+      g.appendChild(row);
+    }
+  }
+}
+
+/* PICKER */
+function makePicker(row,ct){
+  const p=document.createElement('div'); p.className='picker';
+  p.onclick=e=>e.stopPropagation();
+  const h1=document.createElement('div'); h1.className='p-hdr'; h1.textContent='Activiteitstype'; p.appendChild(h1);
+  CATS.forEach(c=>{
+    const o=document.createElement('div'); o.className='p-opt';
+    o.innerHTML=`<div class="p-dot" style="background:${c.color}"></div><span>${c.label}</span>`;
+    o.onclick=()=>{setCat(row,ct,c.key);p.classList.remove('open');};
+    p.appendChild(o);
+  });
+  const clr=document.createElement('div'); clr.className='p-opt clr';
+  clr.innerHTML='<div class="p-dot"></div><span>Geen categorie</span>';
+  clr.onclick=()=>{setCat(row,ct,'');clearET(row);p.classList.remove('open');};
+  p.appendChild(clr);
+
+  // ── Locatie ──
+  const dl=document.createElement('div'); dl.className='p-div'; p.appendChild(dl);
+  const hl=document.createElement('div'); hl.className='p-hdr'; hl.textContent='Locatie afspraak'; p.appendChild(hl);
+  const locRow=document.createElement('div'); locRow.className='loc-row';
+  const locInp=document.createElement('input'); locInp.type='text'; locInp.className='loc-inp'; locInp.placeholder='Adres of plaatsnaam…';
+  const locSug=document.createElement('div'); locSug.className='loc-suggestions';
+  // Snelkeuze locaties
+  const SAVED_LOCS=[
+    // Extern (buiten school)
+    {label:'Kapper — Dam 7, Schoonhoven',         val:'Dam 7, 2871 CS Schoonhoven',           fiets:true,  cat:'extern'},
+    {label:'Thuis — Jan Lutmastraat 13',           val:'Jan Lutmastraat 13, Schoonhoven',       fiets:true,  cat:'extern'},
+    {label:'BiOND — Mariaplaats Utrecht',          val:'Mariaplaats, Utrecht',                  fiets:false, cat:'extern'},
+    {label:'The Hague Conf. Centre, Den Haag',     val:'Anna van Buerenplein 48, Den Haag',     fiets:false, cat:'extern'},
+    {label:'Hondendagopvang Matties — Lopik',      val:'Lekdijk West 44, 3411 MX Lopik',        fiets:false, cat:'extern'},
+    // Op locatie (binnen school)
+    {label:'Werkkamer Marleen',                    val:'Werkkamer Marleen, CSG Willem de Zwijger', fiets:null, cat:'locatie'},
+    {label:'Vergaderruimte A66',                   val:'Vergaderruimte A66, CSG Willem de Zwijger', fiets:null, cat:'locatie'},
+    {label:'CSG Willem de Zwijger (algemeen)',     val:'CSG Willem de Zwijger, Schoonhoven (2871 JN 4)', fiets:true, cat:'locatie'},
+  ];
+  // Toon locaties gefilterd op categorie van dit blok
+  function renderSuggestions(filter){
+    locSug.innerHTML='';
+    const activeCat=row.dataset.cat||'';
+    SAVED_LOCS
+      .filter(sl=>!activeCat||(activeCat==='extern'?sl.cat==='extern':activeCat==='locatie'?sl.cat==='locatie':true))
+      .filter(sl=>!filter||sl.label.toLowerCase().includes(filter))
+      .forEach(sl=>{
+        const s=document.createElement('div'); s.className='loc-sug-item';
+        s.innerHTML=`<span class="loc-sug-icon">${sl.fiets===null?'🏫':sl.fiets?'🚲':'🚗'}</span><span>${sl.label}</span>`;
+        s.onclick=e=>{e.stopPropagation();locInp.value=sl.val;locInp.dataset.fiets=sl.fiets===null?'null':sl.fiets?'1':'0';locSug.style.display='none';};
+        locSug.appendChild(s);
+      });
+    locSug.style.display=locSug.children.length?'block':'none';
+  }
+  locInp.onfocus=()=>renderSuggestions('');
+  locInp.oninput=()=>{
+    renderSuggestions(locInp.value.toLowerCase());
+    const isSchoonhoven=/schoonhoven|2871|jan lut|dam 7|wz|willem|werkkamer|a66/i.test(locInp.value);
+    locInp.dataset.fiets=isSchoonhoven?'1':'0';
+  };
+  const locApply=document.createElement('button'); locApply.className='loc-apply-btn'; locApply.textContent='✓ Sla op + plan reistijd';
+  locApply.onclick=e=>{
+    e.stopPropagation();
+    const loc=locInp.value.trim();
+    if(!loc) return;
+    row.dataset.location=loc;
+    let lb=row.querySelector('.loc-badge');
+    if(!lb){lb=document.createElement('span');lb.className='loc-badge';row.appendChild(lb);}
+    lb.textContent='📍 '+loc;
+    // Alleen reistijd plannen als niet al op locatie (fiets=null)
+    const isFiets=locInp.dataset.fiets;
+    if(isFiets!=='null') planReistijd(row, loc, isFiets==='1');
+    locSug.style.display='none';
+    p.classList.remove('open');
+    autoSave();
+  };
+  locRow.append(locInp,locSug,locApply); p.appendChild(locRow);
+
+  const d1=document.createElement('div'); d1.className='p-div'; p.appendChild(d1);
+  const h2=document.createElement('div'); h2.className='p-hdr'; h2.textContent='Eindtijd blok'; p.appendChild(h2);
+  const er=document.createElement('div'); er.className='et-row';
+  const es=document.createElement('select'); es.className='et-sel';
+  const etApply=document.createElement('button'); etApply.className='et-apply-btn'; etApply.textContent='✓';
+  etApply.title='Eindtijd toepassen';
+  etApply.onclick=e=>{
+    e.stopPropagation();
+    if(es.value) applyET(row,es.value);
+    else clearET(row);
+    p.classList.remove('open');
+  };
+  const ecb=document.createElement('button'); ecb.className='et-clr-btn'; ecb.textContent='✕';
+  ecb.title='Eindtijd wissen';
+  ecb.onclick=e=>{e.stopPropagation();clearET(row);es.value='';p.classList.remove('open');};
+  er.append(es,etApply,ecb); p.appendChild(er);
+
+  const d2=document.createElement('div'); d2.className='p-div'; p.appendChild(d2);
+  const h3=document.createElement('div'); h3.className='p-hdr'; h3.textContent='Herhaling (Outlook)'; p.appendChild(h3);
+  const rw=document.createElement('div'); rw.className='rr-wrap';
+  const rf=document.createElement('select'); rf.className='rr-fs';
+  [['','— geen herhaling —'],['DAILY','Dagelijks'],['WEEKLY','Wekelijks'],['BIWEEKLY','Tweewekelijks'],['MONTHLY','Maandelijks']].forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;rf.appendChild(o);});
+  const rend=document.createElement('div'); rend.className='rr-end'; rend.style.display='none';
+  const ret=document.createElement('select'); ret.className='rr-ets';
+  [['count','Aantal keer'],['until','Tot datum']].forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;ret.appendChild(o);});
+  const rcnt=document.createElement('input'); rcnt.type='number'; rcnt.className='rr-cnt'; rcnt.min=2; rcnt.max=104; rcnt.value=10;
+  const runtil=document.createElement('input'); runtil.type='date'; runtil.className='rr-until'; runtil.style.display='none';
+  ret.onchange=()=>{const u=ret.value==='until';rcnt.style.display=u?'none':'';runtil.style.display=u?'':'none';};
+  rf.onchange=()=>{rend.style.display=rf.value?'flex':'none';};
+  rend.append(ret,rcnt,runtil);
+  const rap=document.createElement('button'); rap.className='rr-apply'; rap.textContent='Toepassen';
+  rap.onclick=e=>{
+    e.stopPropagation();
+    const f=rf.value;
+    if(f){row.dataset.rrfreq=f;row.dataset.rrendtype=ret.value;row.dataset.rrcount=rcnt.value;row.dataset.rruntil=runtil.value;}
+    else{delete row.dataset.rrfreq;}
+    rrBadge(row,f); autoSave(); p.classList.remove('open');
+  };
+  rw.append(rf,rend,rap); p.appendChild(rw);
+
+  p.addEventListener('picker-open',()=>{
+    // Herstel locatie en ververs suggesties op basis van huidige categorie
+    locInp.value=row.dataset.location||'';
+    if(row.dataset.location){
+      locInp.dataset.fiets=/schoonhoven|2871|jan lut|dam 7|wz|willem|werkkamer|a66/i.test(row.dataset.location)?'1':'0';
+    }
+    renderSuggestions('');
+    locSug.style.display='none';
+    // populate end-times
+    const all=Array.from(document.querySelectorAll('.time-block[data-time]')).map(b=>b.dataset.time);
+    const idx=all.indexOf(row.dataset.time); const cur=es.value;
+    es.innerHTML='<option value="">— kies eindtijd —</option>';
+    all.slice(idx+1).forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;es.appendChild(o);});
+    es.value=cur||row.dataset.endtime||'';
+    // restore rrule
+    rf.value=row.dataset.rrfreq||''; rend.style.display=rf.value?'flex':'none';
+    ret.value=row.dataset.rrendtype||'count'; rcnt.value=row.dataset.rrcount||10; runtil.value=row.dataset.rruntil||'';
+    const u=ret.value==='until'; rcnt.style.display=u?'none':''; runtil.style.display=u?'':'none';
+  });
+  return p;
+}
+function openPicker(row){closePickers();const p=row.querySelector('.picker');p.classList.add('open');p.dispatchEvent(new Event('picker-open'));}
+function closePickers(){document.querySelectorAll('.picker.open').forEach(p=>p.classList.remove('open'));}
+document.addEventListener('click',closePickers);
+
+/* REISTIJD AUTOMATISCH */
+function planReistijd(row, loc, isFiets){
+  const startTime=row.dataset.time;
+  const endTime=row.dataset.endtime||startTime;
+  const all=Array.from(document.querySelectorAll('.time-block[data-time]'));
+  const startIdx=all.findIndex(b=>b.dataset.time===startTime);
+  const endIdx=all.findIndex(b=>b.dataset.time===endTime);
+
+  // Reistijd in kwartieren: fiets=1 (15min), auto/OV=3 (45min), Den Haag=3, Utrecht=3
+  let heenBlokken=1, terugBlokken=1;
+  if(!isFiets){
+    const isVerVer=/den haag|haag|amsterdam|rotterdam|utrecht/i.test(loc);
+    heenBlokken=isVerVer?3:2; // 45 min ver, 30 min middeldistantie
+    terugBlokken=heenBlokken;
+  }
+
+  // Vul sloten VOOR de afspraak met reistijd heen
+  const vervoer=isFiets?'🚲 Fiets':'🚗 Auto/OV';
+  const kortLoc=loc.split(',')[0];
+  for(let i=1;i<=heenBlokken;i++){
+    const idx=startIdx-heenBlokken+(i-1);
+    if(idx<0) continue;
+    const b=all[idx]; if(!b) continue;
+    const ta=b.querySelector('.t-inp'), ct=b.querySelector('.cat-tag');
+    if(ta&&!ta.value.trim()){
+      ta.value= i===1?`${vervoer} → ${kortLoc}`:'Reistijd onderweg';
+      ta.style.height='auto'; ta.style.height=Math.max(22,ta.scrollHeight)+'px';
+      setCatS(b,ct,'reistijd');
+    }
+  }
+  // Vul sloten NA de afspraak met reistijd terug
+  for(let i=0;i<terugBlokken;i++){
+    const idx=endIdx+1+i;
+    if(idx>=all.length) continue;
+    const b=all[idx]; if(!b) continue;
+    const ta=b.querySelector('.t-inp'), ct=b.querySelector('.cat-tag');
+    if(ta&&!ta.value.trim()){
+      ta.value= i===0?`${vervoer} ← terug naar Schoonhoven`:'Reistijd onderweg';
+      ta.style.height='auto'; ta.style.height=Math.max(22,ta.scrollHeight)+'px';
+      setCatS(b,ct,'reistijd');
+    }
+  }
+  autoSave();
+}
+
+function setCat(row,ct,key){
+  if(key){row.dataset.cat=key;const c=CATS.find(x=>x.key===key);if(ct)ct.textContent=c?c.short:key;}
+  else{delete row.dataset.cat;if(ct)ct.textContent='';}
+  autoSave();
+}
+function setCatS(row,ct,key){
+  if(key){row.dataset.cat=key;const c=CATS.find(x=>x.key===key);if(ct)ct.textContent=c?c.short:key;}
+  else{delete row.dataset.cat;if(ct)ct.textContent='';}
+}
+function applyET(sr,et){
+  sr.dataset.endtime=et;
+  let b=sr.querySelector('.et-badge');if(!b){b=document.createElement('span');b.className='et-badge';sr.appendChild(b);}
+  b.textContent='→ '+et;
+  const cat=sr.dataset.cat||'',all=Array.from(document.querySelectorAll('.time-block[data-time]'));
+  const si=all.findIndex(x=>x.dataset.time===sr.dataset.time),ei=all.findIndex(x=>x.dataset.time===et);
+  all.forEach(b=>{if(b.dataset.continuationOf===sr.dataset.time){delete b.dataset.continuationOf;b.classList.remove('cont');setCatS(b,b.querySelector('.cat-tag'),'');}});
+  for(let i=si+1;i<=ei&&i<all.length;i++){const b=all[i];b.dataset.continuationOf=sr.dataset.time;b.classList.add('cont');if(cat)setCatS(b,b.querySelector('.cat-tag'),cat);}
+  autoSave();
+}
+function clearET(row){
+  const st=row.dataset.time;delete row.dataset.endtime;
+  const b=row.querySelector('.et-badge');if(b)b.remove();
+  document.querySelectorAll(`.time-block[data-continuation-of="${st}"]`).forEach(b=>{delete b.dataset.continuationOf;b.classList.remove('cont');setCatS(b,b.querySelector('.cat-tag'),'');});
+  autoSave();
+}
+function rrBadge(row,freq){
+  let b=row.querySelector('.rr-badge');if(b)b.remove();
+  if(freq){b=document.createElement('span');b.className='rr-badge';const L={DAILY:'Dagelijks',WEEKLY:'Wekelijks',BIWEEKLY:'2-wekelijks',MONTHLY:'Maandelijks'};b.textContent='↻ '+(L[freq]||freq);row.appendChild(b);}
+}
+
+/* TASKS */
+function addTask(prio,text='',done=false){
+  const list=document.getElementById('tl-'+prio);
+  const item=document.createElement('div');item.className='task-item';
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='t-cb';cb.checked=done;
+  const ta=document.createElement('textarea');ta.className='t-txt'+(done?' done':'');ta.rows=1;ta.value=text;ta.placeholder='Taak…';
+  cb.onchange=()=>{ta.classList.toggle('done',cb.checked);autoSave();};
+  ta.oninput=function(){this.style.height='auto';this.style.height=Math.max(18,this.scrollHeight)+'px';autoSave();};
+  ta.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addTask(prio);setTimeout(()=>{const its=list.querySelectorAll('.t-txt');its[its.length-1].focus();},50);}};
+  item.append(cb,ta);list.appendChild(item);
+  if(!text)setTimeout(()=>ta.focus(),50);
+  autoSave();
+}
+
+/* COMM */
+function addComm(type,text='',done=false){
+  const list=document.getElementById('cl-'+type);
+  const item=document.createElement('div');item.className='comm-item';
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='c-cb';cb.checked=done;
+  const ta=document.createElement('textarea');ta.className='c-txt'+(done?' done':'');ta.rows=1;ta.value=text;
+  const ph={bellen:'Naam / nummer…',mailen:'Naam / onderwerp…',bespreken:'Wie / onderwerp…'};ta.placeholder=ph[type]||'…';
+  cb.onchange=()=>{ta.classList.toggle('done',cb.checked);autoSave();};
+  ta.oninput=function(){this.style.height='auto';this.style.height=Math.max(16,this.scrollHeight)+'px';autoSave();};
+  ta.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addComm(type);setTimeout(()=>{const its=list.querySelectorAll('.c-txt');its[its.length-1].focus();},50);}};
+  item.append(cb,ta);list.appendChild(item);
+  if(!text)setTimeout(()=>ta.focus(),50);
+  autoSave();
+}
+
+/* MOOD */
+function setMood(btn){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');autoSave();}
+
+/* HOURS */
+function workedMins(){return document.querySelectorAll('.time-block.worked').length*15;}
+function storedMins(dateStr){
+  const raw=localStorage.getItem(sk(dateStr));if(!raw)return 0;
+  try{const d=JSON.parse(raw);let c=0;if(d.slots)Object.values(d.slots).forEach(s=>{if(s&&s.worked)c++;});return c>0?c*15:Math.max(0,t2m(d.wEnd)-t2m(d.wStart));}catch(e){return 0;}
+}
+function updateHours(){
+  document.getElementById('hToday').textContent=m2s(workedMins());
+  if(!curDate)return;
+  const d=pd(curDate),dow=d.getDay();
+  const mon=new Date(d);mon.setDate(d.getDate()-(dow===0?6:dow-1));
+  let wk=workedMins();
+  for(let i=0;i<7;i++){const wd=new Date(mon);wd.setDate(mon.getDate()+i);const iso=toISO(wd.getFullYear(),wd.getMonth(),wd.getDate());if(iso!==curDate)wk+=storedMins(iso);}
+  document.getElementById('hWeek').textContent=m2s(wk);
+  const days=new Date(YEAR,d.getMonth()+1,0).getDate();let mo=0;
+  for(let i=1;i<=days;i++){const iso=toISO(YEAR,d.getMonth(),i);mo+=iso===curDate?workedMins():storedMins(iso);}
+  document.getElementById('hMonth').textContent=m2s(mo);
+}
+
+/* SAVE/LOAD */
+function saveDay(){
+  if(!curDate)return;
+  const slots={},tasks={},comms={};
+  document.querySelectorAll('.time-block[data-time]').forEach(b=>{
+    const ta=b.querySelector('.t-inp');
+    slots[b.dataset.time]={val:ta?ta.value:'',cat:b.dataset.cat||'',worked:b.classList.contains('worked'),endtime:b.dataset.endtime||'',continuationOf:b.dataset.continuationOf||'',rrfreq:b.dataset.rrfreq||'',rrendtype:b.dataset.rrendtype||'',rrcount:b.dataset.rrcount||'',rruntil:b.dataset.rruntil||'',location:b.dataset.location||''};
+  });
+  ['hoog','midden','laag'].forEach(p=>{tasks[p]=[];document.querySelectorAll('#tl-'+p+' .task-item').forEach(it=>{tasks[p].push({text:it.querySelector('.t-txt').value,done:it.querySelector('.t-cb').checked});});});
+  ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked});});});
+  const am=document.querySelector('.mood-btn.on');
+  localStorage.setItem(sk(curDate),JSON.stringify({intent:document.getElementById('intentInp').value,notes:document.getElementById('notesArea').value,mood:am?am.textContent:'',wStart:document.getElementById('wStart').value,wEnd:document.getElementById('wEnd').value,slots,tasks,comms}));
+}
+let _st;function autoSave(){clearTimeout(_st);_st=setTimeout(saveDay,600);}
+
+function clearUI(){
+  document.querySelectorAll('.time-block').forEach(b=>{
+    const ta=b.querySelector('.t-inp');if(ta){ta.value='';ta.style.height='';}
+    const ct=b.querySelector('.cat-tag');if(ct)ct.textContent='';
+    delete b.dataset.cat;delete b.dataset.endtime;delete b.dataset.continuationOf;
+    delete b.dataset.rrfreq;delete b.dataset.rrendtype;delete b.dataset.rrcount;delete b.dataset.rruntil;delete b.dataset.location;
+    b.classList.remove('worked','cont');
+    const eb=b.querySelector('.et-badge');if(eb)eb.remove();
+    const rb=b.querySelector('.rr-badge');if(rb)rb.remove();
+    const lb=b.querySelector('.loc-badge');if(lb)lb.remove();
+  });
+  ['hoog','midden','laag'].forEach(p=>document.getElementById('tl-'+p).innerHTML='');
+  ['bellen','mailen','bespreken'].forEach(t=>document.getElementById('cl-'+t).innerHTML='');
+  document.getElementById('intentInp').value='';
+  document.getElementById('notesArea').value='';
+  document.getElementById('wStart').value='08:00';
+  document.getElementById('wEnd').value='16:30';
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('hLoc').textContent='';
+}
+
+function applyS(time,val,cat){
+  const b=document.querySelector(`.time-block[data-time="${time}"]`);if(!b)return;
+  const ta=b.querySelector('.t-inp'),ct=b.querySelector('.cat-tag');
+  if(ta&&!ta.value.trim()){ta.value=val;ta.style.height='auto';ta.style.height=Math.max(22,ta.scrollHeight)+'px';}
+  if(!b.dataset.cat&&cat)setCatS(b,ct,cat);
+}
+
+function applyFixed(dateStr){
+  const d=pd(dateStr),dow=d.getDay(),mo=d.getMonth();
+  document.getElementById('hLoc').textContent=WL[dow]||'';
+  // Pauzes ma/di/do/vr
+  if([1,2,4,5].includes(dow)){
+    applyS('10:30','Pauze (20 min.)','pauze');applyS('10:45','','pauze');
+    applyS('12:10','Pauze (30 min.)','pauze');applyS('12:15','','pauze');applyS('12:25','','pauze');applyS('12:30','','pauze');
+    applyS('14:00','Pauze (10 min.)','pauze');
+  }
+  // IZO dinsdag
+  if(dow===2){['09:15','09:30','09:45','10:00','10:15'].forEach(t=>applyS(t,'IZO — intern zorgoverleg','locatie'));}
+  // Weekplanning vrijdag
+  if(dow===5){['11:00','11:15','11:30','11:45'].forEach(t=>applyS(t,'Weekplanning maken','admin'));}
+  // Kapper donderdag 16:30-17:30 (dam 7 Schoonhoven, fiets)
+  // Niet automatisch: kapper is niet iedere week. Staat als seed op do 21 mei.
+  // Woensdag: reistijd Utrecht
+  if(dow===3){
+    applyS('07:30','Reistijd — Schoonhoven naar Utrecht Mariaplaats (BiOND, ±45 min)','reistijd');
+    applyS('07:45','Reistijd — onderweg naar Utrecht','reistijd');
+    applyS('08:00','Reistijd — onderweg naar Utrecht','reistijd');
+    applyS('08:15','Aankomst BiOND — Mariaplaats Utrecht','reistijd');
+    applyS('17:00','Reistijd — Utrecht Mariaplaats naar Schoonhoven (±45 min)','reistijd');
+    applyS('17:15','Reistijd — onderweg terug','reistijd');
+    applyS('17:30','Reistijd — onderweg terug','reistijd');
+    applyS('17:45','Aankomst Schoonhoven','reistijd');
+    const na=document.getElementById('notesArea');
+    if(!na.value)na.value='📍 BiOND — Mariaplaats, Utrecht\nRijroute: Schoonhoven → A12 → Utrecht Centrum → Mariaplaats';
+  }
+  // Hondenopvang Matties: woensdag juni/juli — auto (Lekdijk West 44, Lopik, ±15 min)
+  if(dow===3&&(mo===5||mo===6)&&d.getFullYear()===YEAR){
+    // Heen: vertrek 07:15, brengen 07:30
+    applyS('07:15','🚗 Auto → Hondendagopvang Matties, Lopik (±15 min)','reistijd');
+    applyS('07:30','Hond brengen — Hondendagopvang Matties, Lekdijk West 44, Lopik','reistijd');
+    applyS('07:45','🚗 Auto ← terug naar Schoonhoven (±15 min)','reistijd');
+    // Ophalen: vertrek 16:45, ophalen 17:00
+    applyS('16:45','🚗 Auto → Hondendagopvang Matties, Lopik (ophalen, ±15 min)','reistijd');
+    applyS('17:00','Hond ophalen — Hondendagopvang Matties, Lekdijk West 44, Lopik','reistijd');
+    applyS('17:15','🚗 Auto ← terug naar Schoonhoven (±15 min)','reistijd');
+    const na=document.getElementById('notesArea');
+    if(!na.value)na.value='🐕 Hondendagopvang Matties\nLekdijk West 44, 3411 MX Lopik\n📞 Brengen 07:30 • Ophalen 17:00\n🚗 Route: N210 richting Lopik → Lekdijk West (±15 min rijden)';
+  }
+}
+
+function loadDay(dateStr){
+  clearUI();
+  const raw=localStorage.getItem(sk(dateStr));
+  if(raw){
+    try{
+      const d=JSON.parse(raw);
+      if(d.intent)document.getElementById('intentInp').value=d.intent;
+      if(d.notes)document.getElementById('notesArea').value=d.notes;
+      if(d.wStart)document.getElementById('wStart').value=d.wStart;
+      if(d.wEnd)document.getElementById('wEnd').value=d.wEnd;
+      if(d.slots)Object.entries(d.slots).forEach(([time,s])=>{
+        if(!s)return;
+        const b=document.querySelector(`.time-block[data-time="${time}"]`);if(!b)return;
+        const ta=b.querySelector('.t-inp'),ct=b.querySelector('.cat-tag');
+        if(s.val&&ta){ta.value=s.val;ta.style.height='auto';ta.style.height=Math.max(22,ta.scrollHeight)+'px';}
+        if(s.cat)setCatS(b,ct,s.cat);
+        if(s.worked)b.classList.add('worked');
+        if(s.continuationOf)b.dataset.continuationOf=s.continuationOf;
+        if(s.endtime){b.dataset.endtime=s.endtime;let eb=b.querySelector('.et-badge');if(!eb){eb=document.createElement('span');eb.className='et-badge';b.appendChild(eb);}eb.textContent='→ '+s.endtime;}
+        if(s.rrfreq){b.dataset.rrfreq=s.rrfreq;b.dataset.rrendtype=s.rrendtype||'count';b.dataset.rrcount=s.rrcount||'10';b.dataset.rruntil=s.rruntil||'';rrBadge(b,s.rrfreq);}
+        if(s.location){b.dataset.location=s.location;let lb=b.querySelector('.loc-badge');if(!lb){lb=document.createElement('span');lb.className='loc-badge';b.appendChild(lb);}lb.textContent='📍 '+s.location;}
+      });
+      const ll=(items,fn,id,min)=>{(items||[]).forEach(it=>fn(id,it.text,it.done));for(let i=(items||[]).length;i<min;i++)fn(id,'');};
+      if(d.tasks)['hoog','midden','laag'].forEach(p=>ll(d.tasks[p],addTask,p,2));
+      else['hoog','midden','laag'].forEach(p=>{for(let i=0;i<2;i++)addTask(p,'');});
+      if(d.comms)['bellen','mailen','bespreken'].forEach(t=>ll(d.comms[t],addComm,t,2));
+      else['bellen','mailen','bespreken'].forEach(t=>{for(let i=0;i<2;i++)addComm(t,'');});
+      if(d.mood)document.querySelectorAll('.mood-btn').forEach(b=>{if(b.textContent===d.mood)b.classList.add('on');});
+    }catch(e){console.error('loadDay:',e);}
+  } else {
+    ['hoog','midden','laag'].forEach(p=>{for(let i=0;i<2;i++)addTask(p,'');});
+    ['bellen','mailen','bespreken'].forEach(t=>{for(let i=0;i<2;i++)addComm(t,'');});
+  }
+  applyFixed(dateStr);
+  updateHours();
+}
+
+/* NAVIGATION */
+function selectDay(dateStr){
+  if(curDate)saveDay();
+  curDate=dateStr;
+  const d=pd(dateStr);curMonth=d.getMonth();
+  document.getElementById('dayLabel').textContent=`${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
+  document.getElementById('hDate').textContent=`${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('hDay').textContent=DAYS_NL[d.getDay()];
+  document.querySelectorAll('.month-tab').forEach((t,i)=>t.classList.toggle('active',MONTHS[i]===d.getMonth()));
+  loadDay(dateStr);
+  renderCal();
+}
+function shiftDay(n){
+  const d=pd(curDate);d.setDate(d.getDate()+n);
+  const iso=toISO(d.getFullYear(),d.getMonth(),d.getDate());
+  if(MONTHS.includes(d.getMonth()))selectDay(iso);
+}
+function gotoMonth(m){
+  const today=isoToday(),td=new Date(today);
+  const start=(td.getFullYear()===YEAR&&td.getMonth()===m)?today:toISO(YEAR,m,1);
+  selectDay(start);
+}
+
+/* CALENDAR */
+function renderCal(){
+  const cal=document.getElementById('mCal');cal.innerHTML='';
+  document.getElementById('mTitle').textContent=MONTHS_NL[curMonth].charAt(0).toUpperCase()+MONTHS_NL[curMonth].slice(1)+' '+YEAR;
+  ['ma','di','wo','do','vr','za','zo'].forEach(d=>{const h=document.createElement('div');h.className='cal-hdr';h.textContent=d;cal.appendChild(h);});
+  const fjs=new Date(YEAR,curMonth,1).getDay(),fmon=(fjs===0)?6:fjs-1;
+  const total=new Date(YEAR,curMonth+1,0).getDate(),today=isoToday();
+  for(let i=0;i<fmon;i++){const e=document.createElement('div');e.className='cal-day empty';cal.appendChild(e);}
+  let mo=0;
+  for(let d=1;d<=total;d++){
+    const iso=toISO(YEAR,curMonth,d),jsDay=new Date(YEAR,curMonth,d).getDay();
+    const el=document.createElement('div');
+    el.className='cal-day'+(jsDay===0||jsDay===6?' weekend':'');
+    if(iso===today)el.classList.add('today');
+    if(iso===curDate)el.classList.add('sel');
+    const num=document.createElement('div');num.className='cal-num';num.textContent=d;el.appendChild(num);
+    const mins=iso===curDate?workedMins():storedMins(iso); mo+=mins;
+    if(mins>0){const h=document.createElement('div');h.className='cal-hours';h.textContent=m2s(mins);el.appendChild(h);}
+    el.onclick=()=>selectDay(iso);
+    cal.appendChild(el);
+  }
+  document.getElementById('mTotal').textContent='Totaal: '+m2s(mo);
+}
+
+/* CLEAR/RESET */
+function clearCurDay(){
+  if(!confirm('Dag wissen?'))return;
+  if(curDate)localStorage.removeItem(sk(curDate));
+  loadDay(curDate); renderCal();
+}
+function fullReset(){
+  if(!confirm('Alle data wissen en opnieuw beginnen?'))return;
+  Object.keys(localStorage).filter(k=>k.startsWith('dp26_')).forEach(k=>localStorage.removeItem(k));
+  window.location.reload();
+}
+
+/* ICS */
+function exportICS(){
+  if(!curDate){alert('Selecteer eerst een dag.');return;}
+  const all=Array.from(document.querySelectorAll('.time-block[data-time]'));
+  const events=[];let i=0;
+  while(i<all.length){
+    const b=all[i];const ta=b.querySelector('.t-inp');const val=ta?ta.value.trim():'';
+    if(val&&!b.dataset.continuationOf&&b.dataset.cat!=='pauze'){
+      const st=b.dataset.time;let et;
+      if(b.dataset.endtime){
+        et=b.dataset.endtime;
+        const ei=all.findIndex(x=>x.dataset.time===et);
+        i=Math.max(i+1,ei+1);
+      } else {
+        // Groepeer aaneengesloten blokken met dezelfde tekst
+        let j=i+1;
+        while(j<all.length){
+          const nb=all[j];const nv=nb.querySelector('.t-inp')?.value.trim()||'';
+          if(nv===val&&!nb.dataset.continuationOf) j++;
+          else break;
+        }
+        et=all[j]?all[j].dataset.time:amins(st,15);
+        i=j;
+      }
+      events.push({
+        title:val,start:st,end:et,
+        cat:b.dataset.cat||'',
+        location:b.dataset.location||'',
+        rr:buildRR(b)
+      });
+    } else i++;
+  }
+  if(!events.length){alert('Geen afspraken gevonden voor deze dag.');return;}
+
+  const CL={locatie:'Overleg op locatie',extern:'Overleg extern',online:'Online overleg',admin:'Administratieve taak',telefoon:'Telefonisch contact',reistijd:'Reistijd',pauze:'Pauze'};
+  const now=new Date().toISOString().replace(/[-:.]/g,'').slice(0,15)+'Z';
+
+  // VTIMEZONE voor Europe/Amsterdam (Outlook-compatibel)
+  const vtimezone=[
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Amsterdam',
+    'BEGIN:STANDARD',
+    'TZNAME:CET',
+    'DTSTART:19701025T030000',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10',
+    'END:STANDARD',
+    'BEGIN:DAYLIGHT',
+    'TZNAME:CEST',
+    'DTSTART:19700329T020000',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0200',
+    'RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3',
+    'END:DAYLIGHT',
+    'END:VTIMEZONE',
+  ].join('\r\n');
+
+  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\n';
+  ics+='PRODID:-//Dagplanner WZ//NL\r\n';
+  ics+='CALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
+  ics+=vtimezone+'\r\n';
+
+  events.forEach((ev,idx)=>{
+    const d=curDate.replace(/-/g,'');
+    const ds=`${d}T${ev.start.replace(':','')}00`;
+    const de=`${d}T${ev.end.replace(':','')}00`;
+    const cl=CL[ev.cat]||'';
+    const desc=cl?`Categorie: ${cl}${ev.location?'\\nLocatie: '+ev.location:''}`:ev.location?`Locatie: ${ev.location}`:'';
+
+    ics+='BEGIN:VEVENT\r\n';
+    ics+=`UID:dp-${curDate}-${idx}-${Date.now()}@wz\r\n`;
+    ics+=`DTSTAMP:${now}\r\n`;
+    ics+=`DTSTART;TZID=Europe/Amsterdam:${ds}\r\n`;
+    ics+=`DTEND;TZID=Europe/Amsterdam:${de}\r\n`;
+    ics+=`SUMMARY:${esc(ev.title)}\r\n`;
+    if(ev.location) ics+=`LOCATION:${esc(ev.location)}\r\n`;
+    if(desc) ics+=`DESCRIPTION:${esc(desc)}\r\n`;
+    if(cl) ics+=`CATEGORIES:${esc(cl)}\r\n`;
+    if(ev.rr) ics+=`RRULE:${ev.rr}\r\n`;
+    // Outlook: 15 min herinnering
+    ics+='BEGIN:VALARM\r\nTRIGGER:-PT15M\r\nACTION:DISPLAY\r\nDESCRIPTION:Herinnering\r\nEND:VALARM\r\n';
+    ics+='END:VEVENT\r\n';
+  });
+  ics+='END:VCALENDAR';
+
+  // Download
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`dagplanner-${curDate}.ics`;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+
+  // Importinstructie tonen
+  showImportTip();
+}
+
+function showImportTip(){
+  const tip=document.createElement('div'); tip.className='import-tip';
+  tip.innerHTML=`
+    <div class="import-tip-inner">
+      <div class="import-tip-title">📥 Importeer in Outlook</div>
+      <ol>
+        <li>Open <strong>Outlook</strong> (desktop of web)</li>
+        <li>Ga naar <strong>Bestand → Openen → Agenda importeren</strong><br><em>Of op web: Agenda → Importeren</em></li>
+        <li>Kies het gedownloade <strong>.ics bestand</strong></li>
+        <li>Klik <strong>Importeren</strong> — klaar!</li>
+      </ol>
+      <button onclick="this.parentElement.parentElement.remove()">✕ Sluiten</button>
+    </div>`;
+  document.body.appendChild(tip);
+  setTimeout(()=>{if(tip.parentElement)tip.remove();},12000);
+}
+function amins(t,n){const[h,m]=t.split(':').map(Number),tot=h*60+m+n;return`${String(Math.floor(tot/60)).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;}
+function esc(s){return s.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');}
+function buildRR(b){const f=b.dataset.rrfreq;if(!f)return null;let freq=f,int=1;if(f==='BIWEEKLY'){freq='WEEKLY';int=2;}let r=`FREQ=${freq}`;if(int>1)r+=`;INTERVAL=${int}`;if(b.dataset.rrendtype==='until'&&b.dataset.rruntil)r+=`;UNTIL=${b.dataset.rruntil.replace(/-/g,'')}T000000Z`;else r+=`;COUNT=${b.dataset.rrcount||10}`;return r;}
+
+/* SEED */
+function mks(afspraken){const s={};afspraken.forEach(af=>af.tijden.forEach(t=>{s[t]={val:af.label,cat:af.cat,worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:''};}));return s;}
+function seedIfNew(dateStr,data){if(!localStorage.getItem(sk(dateStr)))localStorage.setItem(sk(dateStr),JSON.stringify(data));}
+
+function seedAll(){
+  seedIfNew('2026-05-14',{intent:'Leerlingen goed begeleiden én BiOND-afstemming afronden',notes:'Terugbellen: moeder van Youssef\nOPP deadline: vrijdag 16 mei\nBiOND verslag insturen voor maandag',wStart:'07:30',wEnd:'16:30',mood:'',
+    slots:mks([{tijden:['07:30','07:45'],label:'E-mails doornemen en beantwoorden',cat:'admin'},{tijden:['08:00','08:15'],label:'Voorbereiding ondersteuningsgesprekken',cat:'admin'},{tijden:['08:30','08:45'],label:'Gesprek leerling — planningsproblemen (kamer 12)',cat:'locatie'},{tijden:['09:00','09:15','09:30','09:45'],label:'Teamoverleg ondersteuning — weekplanning',cat:'locatie'},{tijden:['11:00','11:15'],label:'Verslaglegging ondersteuningsdossiers bijwerken',cat:'admin'},{tijden:['11:30','11:45'],label:'Telefonisch contact ouder — concentratieproblemen',cat:'telefoon'},{tijden:['13:15','13:30','13:45'],label:'NT2 ondersteuningsklas — begeleiding leerlingen',cat:'locatie'},{tijden:['14:15','14:30'],label:'Planningsgesprek leerling (studievaardigheden)',cat:'locatie'},{tijden:['15:15','15:30','15:45'],label:'Administratie: OPP formulieren verwerken',cat:'admin'},{tijden:['16:00','16:15'],label:'Afsluiting dag — to-do lijst bijwerken',cat:'admin'}]),
+    tasks:{hoog:[{text:'OPP-formulieren verwerken (deadline vrijdag)',done:false},{text:'Terugbellen ouder leerling 3B',done:false},{text:'BiOND voortgangsverslag afronden',done:false}],midden:[{text:'Agenda ondersteuningsklas week 21',done:false},{text:'Afspraak intern begeleider PO',done:false},{text:'Doorstroomtoets leerling controleren',done:true}],laag:[{text:'Huisstijltemplate nieuwsbrief',done:false},{text:'NT2-leeromgeving evalueren',done:false},{text:'Scholingsaanbod neurodiversiteit bekijken',done:false}]},
+    comms:{bellen:[{text:'Moeder Youssef — begeleidingsplan',done:false},{text:'Dyslexiecoach — vervolggesprek',done:false}],mailen:[{text:'BiOND — notulen zorgoverleg',done:false},{text:'Mentor klas 2A — signalering',done:true}],bespreken:[{text:'Teamleider — capaciteit ondersteuningsklas',done:false},{text:'Collega — overdracht leerling',done:false}]}});
+
+  seedIfNew('2026-05-19',{intent:'Driehoeksgesprekken, puzzelen en OPP-bijeenkomst',notes:'17:00 Driehoeksgesprek L.Metaal — 30 min.\n15:00 OPP online — 2 uur\n13:00 Puzzelen kamer Marleen\n10:40 Jessica Snoek overleg',wStart:'07:30',wEnd:'17:30',mood:'',
+    slots:mks([{tijden:['10:45','11:00'],label:'Jessica Snoek — overleg (werkkamer Marleen)',cat:'extern'},{tijden:['13:00','13:15','13:30','13:45'],label:'Puzzelen — kamer Marleen',cat:'locatie'},{tijden:['15:00','15:15','15:30','15:45','16:00','16:15','16:30','16:45'],label:'OPP — online bijeenkomst',cat:'online'},{tijden:['17:00','17:15'],label:'Driehoeksgesprekken klas 2 — L.Metaal',cat:'locatie'}]),
+    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
+
+  seedIfNew('2026-05-20',{intent:'Bijeenkomst Passend Onderwijs Den Haag',notes:'📍 The Hague Conference Centre New Babylon\nAnna van Buerenplein 48, 2595 DA Den Haag\n(naast Den Haag CS — volg borden Koningin Julianaplein)\n\n🚌 REISADVIES HEEN (OV)\nVertrek ~13:55 Schoonhoven-West\nBus 497 → Gouda Station (±20 min)\nIC Gouda → Den Haag CS (±17 min)\nLopen naar New Babylon: 5 min ✓\nOV-chipkaart / OVpay inchecken!\n\n🚌 TERUG: vertrek 18:00 Den Haag CS → thuis ±19:00',wStart:'08:00',wEnd:'19:00',mood:'',
+    slots:mks([{tijden:['14:00'],label:'Vertrek — bus 497 Schoonhoven-West → Gouda Station',cat:'reistijd'},{tijden:['14:15'],label:'Bus 497 onderweg naar Gouda (±20 min)',cat:'reistijd'},{tijden:['14:30'],label:'IC Gouda → Den Haag Centraal (±17 min)',cat:'reistijd'},{tijden:['14:45'],label:'Aankomst Den Haag CS → lopen naar New Babylon',cat:'reistijd'},{tijden:['15:00'],label:'Buffer / aankomst The Hague Conference Centre',cat:'reistijd'},{tijden:['16:00','16:15','16:30','16:45','17:00','17:15','17:30','17:45'],label:'Bijeenkomst Passend Onderwijs — The Hague Conference Centre New Babylon',cat:'extern'},{tijden:['18:00'],label:'Vertrek Den Haag CS — IC richting Gouda',cat:'reistijd'},{tijden:['18:15'],label:'IC Den Haag CS → Gouda (±17 min)',cat:'reistijd'},{tijden:['18:30'],label:'Bus 497 Gouda → Schoonhoven-West (±20 min)',cat:'reistijd'},{tijden:['18:45'],label:'Aankomst Schoonhoven',cat:'reistijd'}]),
+    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
+
+  seedIfNew('2026-05-21',{intent:'Overleg Audra, Mdo Femke, driehoeksgesprekken en kapper',notes:'⚠️ CONFLICT 15:15–15:45: Vervolgoverleg Leerplein I.G. (Teams) overlapt met Mdo Femke\nOrganisator: Lidy van Nijhuis\n\n16:00 Driehoeksgesprek Isa van Wijngaarden — 30 min.\n16:30 Kapper',wStart:'07:30',wEnd:'17:30',mood:'',
+    slots:mks([{tijden:['12:15','12:30','12:45','13:00'],label:'Overleg Audra — Vergaderruimte A66 (Teams)',cat:'online'},{tijden:['15:00','15:15','15:30','15:45'],label:'Mdo Femke — Vergaderruimte A66',cat:'locatie'},{tijden:['16:00','16:15'],label:'Driehoeksgesprekken klas 2 — Isa van Wijngaarden',cat:'locatie'},{tijden:['16:15','16:30'],label:'🚲 Fiets → Kapper',cat:'reistijd'},{tijden:['16:30','16:45','17:00','17:15'],label:'Kapper — Dam 7, Schoonhoven',cat:'extern'}]),
+    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
+}
+
+/* LIVE CLOCK */
+let _clk;
+function startClock(){
+  clearInterval(_clk);
+  _clk=setInterval(()=>{
+    if(curDate===isoToday()){
+      const w=workedMins(),el=document.getElementById('hToday');
+      if(w>0){el.textContent=m2s(w);el.style.color='';}
+      else{const s=document.getElementById('wStart').value;if(s){const n=new Date(),nm=n.getHours()*60+n.getMinutes(),diff=nm-t2m(s);if(diff>0){el.textContent=m2s(diff);el.style.color='#9aabb5';}}}
+    }
+  },60000);
+}
+
+/* INIT */
+document.addEventListener('DOMContentLoaded',()=>{
+  buildGrid();
+  document.getElementById('intentInp').addEventListener('input',autoSave);
+  document.getElementById('notesArea').addEventListener('input',autoSave);
+  seedAll();
+  const today=isoToday(),td=new Date(today);
+  const inRange=td.getFullYear()===YEAR&&MONTHS.includes(td.getMonth());
+  const start=inRange?today:toISO(YEAR,4,1);
+  selectDay(start);
+  startClock();
+
+  // ── Service Worker registreren ──
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js')
+      .then(()=>console.log('SW geregistreerd'))
+      .catch(e=>console.log('SW fout:',e));
+  }
+
+  // ── PWA Install banner ──
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault(); deferredPrompt=e;
+    const banner=document.getElementById('installBanner');
+    if(banner) banner.style.display='flex';
+  });
+  window.addEventListener('appinstalled',()=>{
+    const banner=document.getElementById('installBanner');
+    if(banner) banner.style.display='none';
+    deferredPrompt=null;
+  });
+  document.getElementById('installBtn')?.addEventListener('click',async()=>{
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const{outcome}=await deferredPrompt.userChoice;
+    if(outcome==='accepted') document.getElementById('installBanner').style.display='none';
+    deferredPrompt=null;
+  });
+  document.getElementById('installClose')?.addEventListener('click',()=>{
+    document.getElementById('installBanner').style.display='none';
+  });
+});
+</script>
+
+<!-- PWA Install Banner -->
+<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--darkblue);color:white;padding:12px 16px;align-items:center;gap:10px;box-shadow:0 -4px 16px rgba(0,0,0,.2);">
+  <span style="font-size:22px">📱</span>
+  <div style="flex:1;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.3px;">Installeer als app</div>
+    <div style="font-size:11px;opacity:.75;">Zet de dagplanner op je beginscherm voor snelle toegang</div>
+  </div>
+  <button id="installBtn" style="font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;background:var(--orange);color:white;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;">Installeren</button>
+  <button id="installClose" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;padding:0 4px;">✕</button>
+</div>
+
+</body>
+</html>

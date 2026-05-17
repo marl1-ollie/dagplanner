@@ -1,0 +1,25 @@
+{
+  "name": "Dagplanner 2026 — CSG Willem de Zwijger",
+  "short_name": "Dagplanner",
+  "description": "Persoonlijke dagplanner voor schooljaar 2026",
+  "start_url": "./planner2026.html",
+  "display": "standalone",
+  "background_color": "#006077",
+  "theme_color": "#006077",
+  "orientation": "portrait-primary",
+  "lang": "nl",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
