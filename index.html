@@ -1139,6 +1139,30 @@ async function manualSync(){
   } else {
     showSyncTip('⚠ Niets gevonden','Kon geen data ophalen uit de cloud. Controleer je internetverbinding.','#EB6334');
   }
+}function restorePreviousVersion(){
+  const historyKey = sk(curDate) + '_history';
+  let history = [];
+
+  try{
+    history = JSON.parse(localStorage.getItem(historyKey)) || [];
+  }catch{}
+
+  if(!history.length){
+    alert('Geen eerdere versie beschikbaar');
+    return;
+  }
+
+  if(!confirm('Vorige versie terugzetten?')) return;
+
+  // herstel laatste versie
+  localStorage.setItem(sk(curDate), history[0]);
+
+  // opnieuw laden
+  loadDay(curDate);
+  updateHours();
+
+  // feedback
+  showSyncTip('↺ Hersteld','Vorige versie is teruggezet','#006077');
 }
 function showImportTip(){
   showSyncTip(
