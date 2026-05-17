@@ -710,8 +710,22 @@ function saveDay(){
   ['hoog','midden','laag'].forEach(p=>{tasks[p]=[];document.querySelectorAll('#tl-'+p+' .task-item').forEach(it=>{tasks[p].push({text:it.querySelector('.t-txt').value,done:it.querySelector('.t-cb').checked});});});
   ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked});});});
   const am=document.querySelector('.mood-btn.on');
-  const payload=JSON.stringify({intent:document.getElementById('intentInp').value,notes:document.getElementById('notesArea').value,mood:am?am.textContent:'',wStart:document.getElementById('wStart').value,wEnd:document.getElementById('wEnd').value,slots,tasks,comms});
-  localStorage.setItem(sk(curDate),payload);
+ const payloadObj = {
+  updatedAt: Date.now(),   // 🔥 dit maakt het slim!
+  intent:document.getElementById('intentInp').value,
+  notes:document.getElementById('notesArea').value,
+  mood:am?am.textContent:'',
+  wStart:document.getElementById('wStart').value,
+  wEnd:document.getElementById('wEnd').value,
+  slots,
+  tasks,
+  comms
+};
+
+const payload = JSON.stringify(payloadObj);
+
+localStorage.setItem(sk(curDate),payload);
+``
   // Sync naar cloud
   // Alleen syncen als er echt inhoud is
 const hasContent =
