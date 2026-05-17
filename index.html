@@ -666,7 +666,7 @@ async function syncToCloud(key, value){
     setSyncStatus('syncing');
     await fetch(SYNC_URL,{
       method:'POST',
-      body:JSON.stringify({key,value}),
+      body:JSON.stringify({key: key, value: value}),
       headers:{'Content-Type':'application/json'},
       
     });
