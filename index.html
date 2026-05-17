@@ -749,7 +749,27 @@ function saveDay(){
 };
 
 const payload = JSON.stringify(payloadObj);
+// 🕓 Versiegeschiedenis opslaan
+const historyKey = sk(curDate) + '_history';
+let history = [];
 
+try{
+  history = JSON.parse(localStorage.getItem(historyKey)) || [];
+}catch{
+  history = [];
+}
+
+// oude versie ophalen
+const oldData = localStorage.getItem(sk(curDate));
+
+if(oldData){
+  history.unshift(oldData); // zet bovenaan
+}
+
+// max 10 bewaren
+history = history.slice(0,10);
+
+localStorage.setItem(historyKey, JSON.stringify(history));
 localStorage.setItem(sk(curDate),payload);
 
   // Sync naar cloud
