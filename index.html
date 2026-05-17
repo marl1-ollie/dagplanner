@@ -713,7 +713,16 @@ function saveDay(){
   const payload=JSON.stringify({intent:document.getElementById('intentInp').value,notes:document.getElementById('notesArea').value,mood:am?am.textContent:'',wStart:document.getElementById('wStart').value,wEnd:document.getElementById('wEnd').value,slots,tasks,comms});
   localStorage.setItem(sk(curDate),payload);
   // Sync naar cloud
+  // Alleen syncen als er echt inhoud is
+const hasContent =
+  JSON.stringify(slots).length > 50 ||
+  document.getElementById('notesArea').value.trim() ||
+  document.querySelector('#tl-hoog .t-txt')?.value.trim();
+
+if(hasContent){
   syncToCloud(sk(curDate),payload);
+}
+``
 }
 let _st;function autoSave(){clearTimeout(_st);_st=setTimeout(saveDay,800);}
 
