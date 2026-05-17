@@ -644,10 +644,12 @@ function updateHours(){
   for(let i=1;i<=days;i++){const iso=toISO(YEAR,d.getMonth(),i);mo+=iso===curDate?workedMins():storedMins(iso);}
   document.getElementById('hMonth').textContent=m2s(mo);
 }
-
 /* SAVE/LOAD */
-const SYNC_URL='https://script.google.com/macros/s/AKfycbyGn6SLIl5HSlIPEbXLz9nUwSdYRhfeDlkrLF4qH9h1LxnocBy05RQ2gd0u-2bCipPe/exec';
-let syncStatus='idle'; // idle | syncing | ok | error
+
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycbxZSgq-0uwClxyP-l3gG1lBJdLOeeYXJvJHXNL8q9uBUJyUYugnqLjomAEgUmdnOShQ/exec';
+
+let syncStatus = 'idle';
+
 
 function setSyncStatus(s){
   syncStatus=s;
