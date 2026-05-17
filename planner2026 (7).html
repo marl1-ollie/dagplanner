@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="nl">
-<head>
+<head><link rel="manifest" href="manifest.json">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dagplanner 2026</title>
