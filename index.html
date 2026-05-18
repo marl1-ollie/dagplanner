@@ -1143,17 +1143,7 @@ async function manualSync(){
       `${count} dag(en) opgehaald uit de cloud.`,
       '#008972'
     );
-  } else {
-    showSyncTip(
-      '⚠ Niets gevonden',
-      'Geen nieuwe data gevonden.',
-      '#EB6334'
-    );
-  }
 
-  } else {
-    showSyncTip('⚠ Niets gevonden','Kon geen data ophalen uit de cloud. Controleer je internetverbinding.','#EB6334');
-  }
 }function restorePreviousVersion(){
   const historyKey = sk(curDate) + '_history';
   let history = [];
