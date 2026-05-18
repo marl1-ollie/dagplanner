@@ -258,7 +258,6 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
     <button class="btn btn-export" onclick="exportData()">⬇ Exporteer data</button>
     <button class="btn btn-import" onclick="document.getElementById('importFile').click()">⬆ Importeer data</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
-    <button class="btn btn-sync" onclick="manualSync()" title="Haal alle data op uit de cloud">☁ Synchroniseer</button>
     <span id="syncStatus" class="sync-status"></span>
     <button class="btn" onclick="restorePreviousVersion()">↺ Herstel vorige</button>
     <button class="btn btn-clear" onclick="clearCurDay()">✕ Dag wissen</button>
