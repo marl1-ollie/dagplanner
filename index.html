@@ -1132,11 +1132,6 @@ function showSyncTip(title, html, color){
 async function manualSync(){
   showSyncTip('☁ Synchroniseren…','Data wordt opgehaald uit de cloud. Even geduld.','#006077');
   const count=await syncAllFromCloud();
-async function manualSync(){
-  showSyncTip('☁ Synchroniseren…','Data wordt opgehaald uit de cloud.','#006077');
-
-  const count = await syncAllFromCloud();
-
   if(count > 0){
     if(curDate){
       loadDay(curDate);
