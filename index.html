@@ -669,13 +669,18 @@ async function syncToCloud(key, value){
       body:JSON.stringify({key: key, value: value}),
       headers:{'Content-Type':'application/json'},
       
-    });
-    setSyncStatus('ok');
-    setTimeout(()=>setSyncStatus('idle'),3000);
-  }catch(e){
-    setSyncStatus('error');
-    setTimeout(()=>setSyncStatus('idle'),5000);
-  }
+    if(cloudTime > localTime){
+  localStorage.setItem(k,v);
+  count++;
+}
+else if(localTime > cloudTime && cloudTime > 0){
+  showSyncTip(
+    '⚠ Conflict gedetecteerd',
+    'Lokale en cloud data verschillen.<br>Nieuwste versie is behouden.',
+    '#EB6334'
+  );
+
+  console.warn('SYNC CONFLICT:', k);
 }
 
 async function syncAllFromCloud(){
