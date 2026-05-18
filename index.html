@@ -1151,11 +1151,7 @@ async function manualSync(){
       '#EB6334'
     );
   }
-}
-  if(count>0){
-    // Herlaad huidige dag met nieuwe data
-    if(curDate){loadDay(curDate);updateHours();}
-    showSyncTip('✓ Gesynchroniseerd',`${count} dag(en) opgehaald uit de cloud. De planner is bijgewerkt.`,'#008972');
+
   } else {
     showSyncTip('⚠ Niets gevonden','Kon geen data ophalen uit de cloud. Controleer je internetverbinding.','#EB6334');
   }
