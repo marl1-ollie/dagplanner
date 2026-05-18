@@ -705,7 +705,7 @@ async function syncAllFromCloud(){
         localStorage.setItem(k,v);
         count++;
       }
-      else if(localTime > cloudTime && cloudTime > 0){
+       && cloudTime > 0){
         console.warn('SYNC CONFLICT:', k);
 
         showSyncTip(
@@ -772,7 +772,7 @@ async function syncAllFromCloud(){
     return 0;
   }
 } 
-function saveDay()
+function saveDay(){
   if(!curDate)return;
   const slots={},tasks={},comms={};
   document.querySelectorAll('.time-block[data-time]').forEach(b=>{
@@ -1179,8 +1179,7 @@ async function manualSync(){
   showSyncTip('☁ Synchroniseren…','Data wordt opgehaald uit de cloud. Even geduld.','#006077');
   const count=await syncAllFromCloud();
   if(cloudTime > localTime){
-  localStorage.setItem(k,v);
-  count++;
+  
 }
 ``
   if(count>0){
