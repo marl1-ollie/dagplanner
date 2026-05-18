@@ -761,11 +761,7 @@ async function manualSync(){
       const cloudTime = cloudData?.updatedAt || 0;
       const localTime = localData?.updatedAt || 0;
 
-      if(cloudTime > localTime){
-        localStorage.setItem(k,v);
-        count++;
-      }
-      else if(localTime > cloudTime && cloudTime > 0){
+ 
         console.warn('SYNC CONFLICT:', k);
 
         showSyncTip(
@@ -1193,10 +1189,30 @@ function showSyncTip(title, html, color){
 async function manualSync(){
   showSyncTip('☁ Synchroniseren…','Data wordt opgehaald uit de cloud. Even geduld.','#006077');
   const count=await syncAllFromCloud();
-  if(cloudTime > localTime){
-  
+async function manualSync(){
+  showSyncTip('☁ Synchroniseren…','Data wordt opgehaald uit de cloud.','#006077');
+
+  const count = await syncAllFromCloud();
+
+  if(count > 0){
+    if(curDate){
+      loadDay(curDate);
+      updateHours();
+    }
+
+    showSyncTip(
+      '✓ Gesynchroniseerd',
+      `${count} dag(en) opgehaald uit de cloud.`,
+      '#008972'
+    );
+  } else {
+    showSyncTip(
+      '⚠ Niets gevonden',
+      'Geen nieuwe data gevonden.',
+      '#EB6334'
+    );
+  }
 }
-``
   if(count>0){
     // Herlaad huidige dag met nieuwe data
     if(curDate){loadDay(curDate);updateHours();}
