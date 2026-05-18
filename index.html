@@ -685,7 +685,7 @@ async function syncAllFromCloud(){
   try{
     setSyncStatus('syncing');
 
-    const res = await fetch(SYNC_URL + '?t=' + Date.now());
+   (SYNC_URL + '?t=' + Date.now());
     const data = await res.json();
     let count = 0;
 
@@ -706,7 +706,7 @@ async function syncAllFromCloud(){
         count++;
       }
       else if(localTime > cloudTime && cloudTime > 0){
-        console.warn('SYNC CONFLICT:', k);
+   
 
         showSyncTip(
           '⚠ Conflict gedetecteerd',
