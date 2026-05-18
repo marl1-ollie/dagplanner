@@ -669,7 +669,7 @@ async function syncToCloud(key, value){
   localStorage.setItem(k,v);
   count++;
 }
-  async function syncToCloud(key, value){
+async function syncToCloud(key, value){
   try{
     setSyncStatus('syncing');
 
@@ -687,21 +687,12 @@ async function syncToCloud(key, value){
     setTimeout(()=>setSyncStatus('idle'),5000);
   }
 }
-else if(localTime > cloudTime && cloudTime > 0){
-  showSyncTip(
-    '⚠ Conflict gedetecteerd',
-    'Lokale en cloud data verschillen.<br>Nieuwste versie is behouden.',
-    '#EB6334'
-  );
-
-  console.warn('SYNC CONFLICT:', k);
-}
 
 async function syncAllFromCloud(){
   try{
     setSyncStatus('syncing');
 
-    const res = await fetch(SYNC_URL+'?t='+Date.now());
+    const res = await fetch(SYNC_URL + '?t=' + Date.now());
     const data = await res.json();
     let count = 0;
 
@@ -717,7 +708,20 @@ async function syncAllFromCloud(){
       const cloudTime = cloudData?.updatedAt || 0;
       const localTime = localData?.updatedAt || 0;
 
-  
+      if(cloudTime > localTime){
+        localStorage.setItem(k,v);
+        count++;
+      }
+      else if(localTime > cloudTime && cloudTime > 0){
+        console.warn('SYNC CONFLICT:', k);
+
+        showSyncTip(
+          '⚠ Conflict gedetecteerd',
+          'Lokale en cloud data verschillen.<br>Nieuwste versie is behouden.',
+          '#EB6334'
+        );
+      }
+    });
 
     setSyncStatus('ok');
     setTimeout(()=>setSyncStatus('idle'),3000);
@@ -729,17 +733,7 @@ async function syncAllFromCloud(){
     setTimeout(()=>setSyncStatus('idle'),5000);
     return 0;
   }
-}
-    setSyncStatus('ok');
-    setTimeout(()=>setSyncStatus('idle'),3000);
-    return count;
-  }catch(e){
-    setSyncStatus('error');
-    setTimeout(()=>setSyncStatus('idle'),5000);
-    return 0;
-  }
-}
-
+} 
 function saveDay()
   if(!curDate)return;
   const slots={},tasks={},comms={};
