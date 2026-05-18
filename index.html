@@ -1130,8 +1130,14 @@ function showSyncTip(title, html, color){
   setTimeout(()=>{if(document.getElementById('syncTip'))document.getElementById('syncTip').remove();},15000);
 }
 async function manualSync(){
-  showSyncTip('☁ Synchroniseren…','Data wordt opgehaald uit de cloud. Even geduld.','#006077');
-  const count=await syncAllFromCloud();
+  showSyncTip(
+    '☁ Synchroniseren…',
+    'Data wordt opgehaald uit de cloud. Even geduld.',
+    '#006077'
+  );
+
+  const count = await syncAllFromCloud();
+
   if(count > 0){
     if(curDate){
       loadDay(curDate);
@@ -1143,6 +1149,14 @@ async function manualSync(){
       `${count} dag(en) opgehaald uit de cloud.`,
       '#008972'
     );
+  } else {
+    showSyncTip(
+      '⚠ Niets gevonden',
+      'Geen nieuwe data gevonden of geen verbinding.',
+      '#EB6334'
+    );
+  }
+}
 
 }function restorePreviousVersion(){
   const historyKey = sk(curDate) + '_history';
