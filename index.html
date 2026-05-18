@@ -701,18 +701,27 @@ async function syncAllFromCloud(){
       const cloudTime = cloudData?.updatedAt || 0;
       const localTime = localData?.updatedAt || 0;
 
-    if(cloudTime > localTime){
-  localStorage.setItem(k,v);
-  count++;
-}
-else if(localTime > cloudTime && cloudTime > 0){
-  console.warn('SYNC CONFLICT:', k);
+async function manualSync(){
+  showSyncTip('☁ Synchroniseren…','Data wordt opgehaald uit de cloud.','#006077');
 
-  showSyncTip(
-    '⚠ Conflict gedetecteerd',
-    'Lokale en cloud data verschillen.<br>Nieuwste versie is behouden.',
-    '#EB6334'
-  );
+  const count = await syncAllFromCloud();
+
+  if(count > 0){
+    if(curDate){
+      loadDay(curDate);
+      updateHours();
+    }
+
+    showSyncTip('✓ Gesynchroniseerd',
+      `${count} dag(en) opgehaald uit de cloud.`,
+      '#008972'
+    );
+  } else {
+    showSyncTip('⚠ Niets gevonden',
+      'Geen nieuwe data gevonden.',
+      '#EB6334'
+    );
+  }
 }
 
         showSyncTip(
