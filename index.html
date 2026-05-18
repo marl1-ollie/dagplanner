@@ -665,14 +665,27 @@ function setSyncStatus(s){
 async function syncToCloud(key, value){
   try{
     setSyncStatus('syncing');
+   
+  localStorage.setItem(k,v);
+  count++;
+}
+  async function syncToCloud(key, value){
+  try{
+    setSyncStatus('syncing');
+
     await fetch(SYNC_URL,{
       method:'POST',
       body:JSON.stringify({key: key, value: value}),
-      headers:{'Content-Type':'application/json'},
-      
-    if(cloudTime > localTime){
-  localStorage.setItem(k,v);
-  count++;
+      headers:{'Content-Type':'application/json'}
+    });
+
+    setSyncStatus('ok');
+    setTimeout(()=>setSyncStatus('idle'),3000);
+
+  }catch(e){
+    setSyncStatus('error');
+    setTimeout(()=>setSyncStatus('idle'),5000);
+  }
 }
 else if(localTime > cloudTime && cloudTime > 0){
   showSyncTip(
