@@ -986,7 +986,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     const count=await syncAllFromCloud();
     if(count>0&&curDate){loadDay(curDate);updateHours();}
   },1500);
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.log('SW:',e));}
+  if('serviceWorker' in navigator){
+    // Verwijder oude service workers
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
+    });
+  }
   let dp=null;
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const b=document.getElementById('installBanner');if(b)b.style.display='flex';});
   window.addEventListener('appinstalled',()=>{dp=null;const b=document.getElementById('installBanner');if(b)b.style.display='none';});
