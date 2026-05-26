@@ -338,6 +338,30 @@ const CATS=[
   {key:'pauze',  label:'Pauze',               short:'Pauze',color:'#8fa8b8'},
 ];
 const WL={1:'Schoonhoven (WZ)',2:'Schoonhoven (WZ)',3:'Utrecht - BiOND',4:'Schoonhoven (WZ)',5:'Schoonhoven (WZ, vm)'};
+
+// Schoolvakanties en vrije dagen 2026 (CSG Willem de Zwijger)
+const SCHOOL_FREE = {
+  // Tweede Pinksterdag
+  '2026-05-25': {label:'Pinksterdag', color:'#e8f5e9', type:'feestdag'},
+  // Roostervrije dagen
+  '2026-07-13': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
+  '2026-07-14': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
+  '2026-07-15': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
+  '2026-07-16': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
+  // Zomervakantie (20 jul t/m einde planner = 31 jul)
+  '2026-07-20': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-21': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-22': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-23': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-24': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-25': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-26': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-27': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-28': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-29': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-30': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-31': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+};
 const SAVED_LOCS=[
   {label:'Kapper - Dam 7, Schoonhoven',      val:'Dam 7, 2871 CS Schoonhoven',               fiets:true,  cat:'extern'},
   {label:'Thuis - Jan Lutmastraat 13',        val:'Jan Lutmastraat 13, Schoonhoven',           fiets:true,  cat:'extern'},
@@ -354,7 +378,7 @@ let curDate=null,curMonth=4;
 const sk=d=>'dp26_'+d;
 const toISO=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
-const isoToday=()=>{const t=new Date();return toISO(t.getFullYear(),t.getMonth(),t.getDate());};
+const isoToday=()=>{const t=new Date();return`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;};
 const t2m=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m;};
 const m2s=m=>{if(m<=0)return'0u';const h=Math.floor(m/60),r=m%60;return r?`${h}u ${r}m`:`${h}u`;};
 
@@ -695,6 +719,7 @@ function clearUI(){
   document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
   document.getElementById('hLoc').textContent='';
   setBannerData(null);
+  const page=document.querySelector('.page');if(page)page.style.background='white';
 }
 
 function applyS(time,val,cat){
@@ -707,6 +732,26 @@ function applyS(time,val,cat){
 function applyFixed(dateStr){
   const d=pd(dateStr),dow=d.getDay(),mo=d.getMonth();
   document.getElementById('hLoc').textContent=WL[dow]?'Locatie: '+WL[dow]:'';
+
+  // Schoolvakantie / vrije dag banner automatisch
+  const sf=SCHOOL_FREE[dateStr];
+  if(sf){
+    const bannerEl=document.getElementById('dayBannerInp');
+    if(bannerEl&&!bannerEl.value){
+      bannerEl.value=sf.label;
+    }
+    // Zet de juiste chip actief
+    const typeMap={vakantie:'vakantie',feestdag:'vrij',roostervrij:'vrij'};
+    const chipType=typeMap[sf.type]||'vrij';
+    const chip=document.querySelector(`.day-chip[data-type="${chipType}"]`);
+    if(chip&&!document.querySelector('.day-chip.active')) chip.classList.add('active');
+    // Lichte achtergrond op de pagina
+    const page=document.querySelector('.page');
+    if(page) page.style.background=sf.color;
+  } else {
+    const page=document.querySelector('.page');
+    if(page) page.style.background='white';
+  }
   if([1,2,4,5].includes(dow)){
     applyS('10:30','Pauze (20 min.)','pauze');applyS('10:45','','pauze');
     applyS('12:10','Pauze (30 min.)','pauze');applyS('12:15','','pauze');applyS('12:25','','pauze');applyS('12:30','','pauze');
@@ -815,6 +860,9 @@ function renderCal(){
     const iso=toISO(YEAR,curMonth,d),jsDay=new Date(YEAR,curMonth,d).getDay();
     const el=document.createElement('div');
     el.className='cal-day'+(jsDay===0||jsDay===6?' weekend':'');
+    // Schoolvakantie / vrije dag kleur
+    const sf=SCHOOL_FREE[iso];
+    if(sf) el.style.background=sf.color;
     if(iso===today)el.classList.add('today');
     if(iso===curDate)el.classList.add('sel');
     const num=document.createElement('div');num.className='cal-num';num.textContent=d;el.appendChild(num);
@@ -977,9 +1025,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('intentInp').addEventListener('input',autoSave);
   document.getElementById('notesArea').addEventListener('input',autoSave);
   seedAll();
-  const today=isoToday(),td=new Date(today);
+  const today=isoToday();
+  const td=pd(today);
   const inRange=td.getFullYear()===YEAR&&MONTHS.includes(td.getMonth());
   const start=inRange?today:toISO(YEAR,4,1);
+  curMonth=pd(start).getMonth();
+  document.querySelectorAll('.month-tab').forEach((t,i)=>t.classList.toggle('active',MONTHS[i]===curMonth));
   selectDay(start);
   startClock();
   setTimeout(async()=>{
