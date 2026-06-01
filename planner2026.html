@@ -39,6 +39,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .btn-export{background:#5573a0;color:white;}
 .btn-import{background:#70508a;color:white;}
 .btn-sync{background:#1a6070;color:white;border:1px solid rgba(255,255,255,.2);}
+.btn-ics{background:#217346;color:white;}
 .sync-status{font-size:10px;font-weight:600;font-family:'Barlow',sans-serif;white-space:nowrap;transition:color .3s;color:white;}
 .sync-tip{position:fixed;bottom:24px;right:24px;z-index:9999;max-width:320px;animation:fadeIn .3s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -231,6 +232,8 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
     <button class="btn btn-export" onclick="exportData()">&#11015; Exporteer</button>
     <button class="btn btn-import" onclick="document.getElementById('importFile').click()">&#11014; Importeer</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+    <button class="btn btn-ics" onclick="document.getElementById('icsFile').click()">&#128197; Outlook importeren</button>
+    <input type="file" id="icsFile" accept=".ics" style="display:none" onchange="importICS(this)">
     <button class="btn btn-sync" onclick="manualSync()">&#9729; Sync</button>
     <span id="syncStatus" class="sync-status"></span>
     <button class="btn btn-clear" onclick="clearCurDay()">&#10005; Dag wissen</button>
@@ -369,6 +372,7 @@ const SAVED_LOCS=[
   {label:'The Hague Conf. Centre, Den Haag',  val:'Anna van Buerenplein 48, Den Haag',         fiets:false, cat:'extern'},
   {label:'Hondendagopvang Matties - Lopik',   val:'Lekdijk West 44, 3411 MX Lopik',            fiets:false, cat:'extern'},
   {label:'Werkkamer Marleen',                 val:'Werkkamer Marleen, CSG Willem de Zwijger',   fiets:null,  cat:'locatie'},
+  {label:'Werkkamer Andre',                   val:'Werkkamer Andre, CSG Willem de Zwijger',     fiets:null,  cat:'locatie'},
   {label:'Vergaderruimte A66',                val:'Vergaderruimte A66, CSG Willem de Zwijger',  fiets:null,  cat:'locatie'},
   {label:'CSG Willem de Zwijger (algemeen)',  val:'CSG Willem de Zwijger, Schoonhoven',         fiets:true,  cat:'locatie'},
 ];
@@ -646,29 +650,65 @@ function setSyncStatus(s){
   const col={idle:'rgba(255,255,255,.5)',syncing:'#FDCE43',ok:'#008972',error:'#EB6334'};
   el.textContent=map[s]||'';el.style.color=col[s]||'';
 }
-async function syncToCloud(key,value){
+async function syncToCloud(key,value,retry=2){
   try{
     setSyncStatus('syncing');
-    await fetch(SYNC_URL,{method:'POST',body:JSON.stringify({key,value}),headers:{'Content-Type':'application/json'},mode:'no-cors'});
-    setSyncStatus('ok');setTimeout(()=>setSyncStatus('idle'),3000);
-  }catch(e){setSyncStatus('error');setTimeout(()=>setSyncStatus('idle'),5000);}
+    const res=await fetch(SYNC_URL,{
+      method:'POST',
+      body:JSON.stringify({key,value}),
+      headers:{'Content-Type':'application/json'},
+      mode:'no-cors'
+    });
+    setSyncStatus('ok');
+    setTimeout(()=>setSyncStatus('idle'),3000);
+  }catch(e){
+    if(retry>0){
+      setTimeout(()=>syncToCloud(key,value,retry-1),3000);
+    }else{
+      setSyncStatus('error');
+      setTimeout(()=>setSyncStatus('idle'),5000);
+    }
+  }
 }
 async function syncAllFromCloud(){
   try{
     setSyncStatus('syncing');
     const res=await fetch(SYNC_URL+'?t='+Date.now());
-    const data=await res.json();let count=0;
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    let count=0;
     Object.entries(data).forEach(([k,v])=>{
       if(!k.startsWith('dp26_')||!v)return;
       let cd,ld;
-      try{cd=JSON.parse(v);}catch{cd=null;}
+      try{cd=JSON.parse(v);}catch{return;}
       try{ld=JSON.parse(localStorage.getItem(k));}catch{ld=null;}
-      const ct=cd?.updatedAt||0,lt=ld?.updatedAt||0;
-      if(ct>lt){localStorage.setItem(k,v);count++;}
+      const ct=cd?.updatedAt||1;
+      const lt=ld?.updatedAt||0;
+      // Altijd overschrijven als cloud nieuwer is OF lokaal geen timestamp heeft
+      if(ct>lt){
+        localStorage.setItem(k,v);
+        count++;
+      }
     });
-    setSyncStatus('ok');setTimeout(()=>setSyncStatus('idle'),3000);
+    setSyncStatus('ok');
+    setTimeout(()=>setSyncStatus('idle'),3000);
     return count;
-  }catch(e){setSyncStatus('error');setTimeout(()=>setSyncStatus('idle'),5000);return 0;}
+  }catch(e){
+    console.warn('Sync fout:',e.message);
+    setSyncStatus('error');
+    setTimeout(()=>setSyncStatus('idle'),5000);
+    return 0;
+  }
+}
+
+// Auto-sync elke 5 minuten
+let _autoSyncInterval=null;
+function startAutoSync(){
+  if(_autoSyncInterval)clearInterval(_autoSyncInterval);
+  _autoSyncInterval=setInterval(async()=>{
+    const count=await syncAllFromCloud();
+    if(count>0&&curDate){loadDay(curDate);updateHours();}
+  },5*60*1000);
 }
 async function manualSync(){
   showTip('Synchroniseren...','Data wordt opgehaald. Even geduld.','#006077');
@@ -689,7 +729,16 @@ function saveDay(){
   ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked});});});
   const am=document.querySelector('.mood-btn.on');
   const banner=getBannerData();
-  const obj={updatedAt:Date.now(),intent:document.getElementById('intentInp').value,notes:document.getElementById('notesArea').value,mood:am?am.textContent:'',wStart:document.getElementById('wStart').value,wEnd:document.getElementById('wEnd').value,banner,slots,tasks,comms};
+  const obj={
+    updatedAt:Date.now(),
+    v:2, // versienummer zodat sync weet dat dit nieuwe data is
+    intent:document.getElementById('intentInp').value,
+    notes:document.getElementById('notesArea').value,
+    mood:am?am.textContent:'',
+    wStart:document.getElementById('wStart').value,
+    wEnd:document.getElementById('wEnd').value,
+    banner,slots,tasks,comms
+  };
   const payload=JSON.stringify(obj);
   const hk=sk(curDate)+'_history';
   let hist=[];try{hist=JSON.parse(localStorage.getItem(hk))||[];}catch{}
@@ -936,6 +985,144 @@ function importData(input){
   reader.readAsText(file);
 }
 
+/* ICS IMPORT VANUIT OUTLOOK */
+function importICS(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const text=e.target.result;
+      const events=parseICS(text);
+      if(!events.length){alert('Geen afspraken gevonden in dit bestand.');input.value='';return;}
+
+      // Filter alleen afspraken binnen mei-juli 2026
+      const relevant=events.filter(ev=>MONTHS.includes(ev.date.getMonth())&&ev.date.getFullYear()===YEAR);
+      if(!relevant.length){alert('Geen afspraken gevonden voor mei t/m juli 2026.');input.value='';return;}
+
+      if(!confirm(`${relevant.length} afspraak/afspraken gevonden voor mei-juli 2026.\nInladen in de planner?`)){input.value='';return;}
+
+      // Groepeer per dag
+      const perDay={};
+      relevant.forEach(ev=>{
+        const iso=toISO(ev.date.getFullYear(),ev.date.getMonth(),ev.date.getDate());
+        if(!perDay[iso])perDay[iso]=[];
+        perDay[iso].push(ev);
+      });
+
+      // Sla op per dag
+      let imported=0;
+      Object.entries(perDay).forEach(([iso,evs])=>{
+        const raw=localStorage.getItem(sk(iso));
+        let dayData={slots:{},tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]},intent:'',notes:'',wStart:'08:00',wEnd:'16:30',mood:'',updatedAt:Date.now()};
+        if(raw){try{dayData=JSON.parse(raw);}catch(ex){}}
+
+        evs.forEach(ev=>{
+          // Vind de dichtstbijzijnde kwartierslot
+          const slots=getTimeSlots(ev.startTime,ev.endTime);
+          const cat=guessCat(ev.summary,ev.location);
+          slots.forEach((t,i)=>{
+            if(!dayData.slots[t])dayData.slots[t]={val:'',cat:'',worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:'',location:''};
+            // Niet overschrijven als al gevuld
+            if(!dayData.slots[t].val){
+              dayData.slots[t].val=i===0?ev.summary:'';
+              dayData.slots[t].cat=cat;
+              if(ev.location&&i===0)dayData.slots[t].location=ev.location;
+              if(i===0&&slots.length>1)dayData.slots[t].endtime=slots[slots.length-1];
+              if(i>0)dayData.slots[t].continuationOf=slots[0];
+            }
+          });
+          imported++;
+        });
+
+        dayData.updatedAt=Date.now();
+        localStorage.setItem(sk(iso),JSON.stringify(dayData));
+        syncToCloud(sk(iso),JSON.stringify(dayData));
+      });
+
+      // Herlaad huidige dag als die in de import zit
+      if(curDate&&perDay[curDate]){loadDay(curDate);updateHours();}
+      input.value='';
+      showTip('Outlook geimporteerd',`${imported} afspraak/afspraken ingeladen voor ${Object.keys(perDay).length} dag(en).<br>Navigeer naar de dagen om ze te bekijken.`,'#217346');
+
+    }catch(err){
+      console.error(err);
+      alert('Fout bij inlezen: '+err.message);
+      input.value='';
+    }
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+function parseICS(text){
+  const events=[];
+  const lines=text.replace(/\r\n /g,'').replace(/\r\n\t/g,'').split(/\r\n|\n|\r/);
+  let current=null;
+  lines.forEach(line=>{
+    if(line==='BEGIN:VEVENT'){current={summary:'',location:'',startTime:'',endTime:'',date:null};}
+    else if(line==='END:VEVENT'&&current){
+      if(current.date)events.push(current);
+      current=null;
+    } else if(current){
+      if(line.startsWith('SUMMARY:'))current.summary=line.slice(8).trim();
+      else if(line.startsWith('LOCATION:'))current.location=line.slice(9).trim();
+      else if(line.startsWith('DTSTART')){
+        const val=line.split(':').pop().trim();
+        const parsed=parseICSDate(val);
+        if(parsed){current.date=parsed.date;current.startTime=parsed.time;}
+      }
+      else if(line.startsWith('DTEND')){
+        const val=line.split(':').pop().trim();
+        const parsed=parseICSDate(val);
+        if(parsed)current.endTime=parsed.time;
+      }
+    }
+  });
+  return events;
+}
+
+function parseICSDate(val){
+  // Formaat: 20260519T090000 of 20260519T090000Z
+  const m=val.replace('Z','').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
+  if(!m)return null;
+  const date=new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));
+  const h=parseInt(m[4]),min=parseInt(m[5]);
+  const time=`${String(h).padStart(2,'0')}:${String(Math.round(min/15)*15).padStart(2,'0')}`;
+  return{date,time};
+}
+
+function getTimeSlots(start,end){
+  if(!start)return[];
+  const slots=[];
+  let [h,m]=start.split(':').map(Number);
+  // Afronden naar kwartier
+  m=Math.round(m/15)*15;if(m===60){h++;m=0;}
+  const endH=end?parseInt(end.split(':')[0]):h;
+  const endM=end?Math.round(parseInt(end.split(':')[1])/15)*15:m+15;
+
+  let cur=h*60+m;
+  const fin=endH*60+endM;
+  while(cur<fin&&cur<=21*60+45){
+    const hh=Math.floor(cur/60),mm=cur%60;
+    // Alleen sloten die in het grid zitten (07:30-21:45)
+    if(hh>7||(hh===7&&mm>=30)){
+      slots.push(`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`);
+    }
+    cur+=15;
+  }
+  return slots;
+}
+
+function guessCat(summary,location){
+  const s=(summary+' '+(location||'')).toLowerCase();
+  if(/teams|zoom|meet|online|videovergadering|video/i.test(s))return'online';
+  if(/tel|bel|gesprek|call/i.test(s)&&!/overleg|vergader/i.test(s))return'telefoon';
+  if(/vergader|overleg|meeting|beraad/i.test(s)){
+    if(/extern|buiten|locatie|mariaplaats|den haag|gouda|utrecht|lopik/i.test(s))return'extern';
+    return'locatie';
+  }
+  if(/admin|verslag|notulen|mail|rapport/i.test(s))return'admin';
+  if(/reis|reizen|trein|bus|auto/i.test(s))return'reistijd';
+  return'locatie';
 /* TIP */
 function showTip(title,html,color){
   const old=document.getElementById('syncTip');if(old)old.remove();
@@ -1036,6 +1223,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(async()=>{
     const count=await syncAllFromCloud();
     if(count>0&&curDate){loadDay(curDate);updateHours();}
+    startAutoSync();
   },1500);
   if('serviceWorker' in navigator){
     // Verwijder oude service workers
