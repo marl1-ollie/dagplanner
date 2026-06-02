@@ -1,4 +1,197 @@
 
+/* COMM */
+function addComm(type,text='',done=false){
+  const list=document.getElementById('cl-'+type);
+  const item=document.createElement('div');item.className='comm-item';
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='c-cb';cb.checked=done;
+  const ta=document.createElement('textarea');ta.className='c-txt'+(done?' done':'');ta.rows=1;ta.value=text;
+  const ph={bellen:'Naam / nummer...',mailen:'Naam / onderwerp...',bespreken:'Wie / onderwerp...'};ta.placeholder=ph[type]||'...';
+  cb.onchange=()=>{ta.classList.toggle('done',cb.checked);autoSave();};
+  ta.oninput=function(){this.style.height='auto';this.style.height=Math.max(16,this.scrollHeight)+'px';autoSave();};
+  ta.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addComm(type);setTimeout(()=>{const its=list.querySelectorAll('.c-txt');its[its.length-1].focus();},50);}};
+  item.append(cb,ta);list.appendChild(item);
+  if(!text)setTimeout(()=>ta.focus(),50);
+  autoSave();
+}
+
+function setMood(btn){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');autoSave();}
+
+/* DAGBANNER */
+const CHIP_COLORS={vrij:'#008972',vakantie:'#1C829E',studiedag:'#d4a000',ziek:'#EB6334',verjaardag:'#8B5CF6'};
+function toggleChip(btn){
+  const wasActive=btn.classList.contains('active');
+  document.querySelectorAll('.day-chip').forEach(b=>b.classList.remove('active'));
+  if(!wasActive) btn.classList.add('active');
+  autoSave();
+}
+function getBannerData(){
+  const chip=document.querySelector('.day-chip.active');
+  const inp=document.getElementById('dayBannerInp').value.trim();
+  return{type:chip?chip.dataset.type:'', text:inp};
+}
+function setBannerData(data){
+  document.querySelectorAll('.day-chip').forEach(b=>b.classList.remove('active'));
+  if(data&&data.type){
+    const chip=document.querySelector(`.day-chip[data-type="${data.type}"]`);
+    if(chip)chip.classList.add('active');
+  }
+  document.getElementById('dayBannerInp').value=(data&&data.text)||'';
+}
+
+/* HOURS */
+function workedMins(){return document.querySelectorAll('.time-block.worked').length*15;}
+function storedMins(dateStr){
+  const raw=localStorage.getItem(sk(dateStr));if(!raw)return 0;
+  try{const d=JSON.parse(raw);let c=0;if(d.slots)Object.values(d.slots).forEach(s=>{if(s&&s.worked)c++;});return c>0?c*15:Math.max(0,t2m(d.wEnd)-t2m(d.wStart));}catch(e){return 0;}
+}
+function updateHours(){
+  document.getElementById('hToday').textContent=m2s(workedMins());
+  if(!curDate)return;
+  const d=pd(curDate),dow=d.getDay();
+  const mon=new Date(d);mon.setDate(d.getDate()-(dow===0?6:dow-1));
+  let wk=workedMins();
+  for(let i=0;i<7;i++){const wd=new Date(mon);wd.setDate(mon.getDate()+i);const iso=toISO(wd.getFullYear(),wd.getMonth(),wd.getDate());if(iso!==curDate)wk+=storedMins(iso);}
+  document.getElementById('hWeek').textContent=m2s(wk);
+  const days=new Date(YEAR,d.getMonth()+1,0).getDate();let mo=0;
+  for(let i=1;i<=days;i++){const iso=toISO(YEAR,d.getMonth(),i);mo+=iso===curDate?workedMins():storedMins(iso);}
+  document.getElementById('hMonth').textContent=m2s(mo);
+}
+
+/* SYNC */
+function setSyncStatus(s){
+  const el=document.getElementById('syncStatus');if(!el)return;
+  const map={idle:'',syncing:'Bezig...',ok:'Gesynchroniseerd',error:'Sync mislukt'};
+  const col={idle:'rgba(255,255,255,.5)',syncing:'#FDCE43',ok:'#008972',error:'#EB6334'};
+  el.textContent=map[s]||'';el.style.color=col[s]||'';
+}
+async function syncToCloud(key,value,retry=2){
+  try{
+    setSyncStatus('syncing');
+    const res=await fetch(SYNC_URL,{
+      method:'POST',
+      body:JSON.stringify({key,value}),
+      headers:{'Content-Type':'application/json'},
+      mode:'no-cors'
+    });
+    setSyncStatus('ok');
+    setTimeout(()=>setSyncStatus('idle'),3000);
+  }catch(e){
+    if(retry>0){
+      setTimeout(()=>syncToCloud(key,value,retry-1),3000);
+    }else{
+      setSyncStatus('error');
+      setTimeout(()=>setSyncStatus('idle'),5000);
+    }
+  }
+}
+async function syncAllFromCloud(){
+  try{
+    setSyncStatus('syncing');
+    const res=await fetch(SYNC_URL+'?t='+Date.now());
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    let count=0;
+    Object.entries(data).forEach(([k,v])=>{
+      if(!k.startsWith('dp26_')||!v)return;
+      let cd,ld;
+      try{cd=JSON.parse(v);}catch{return;}
+      try{ld=JSON.parse(localStorage.getItem(k));}catch{ld=null;}
+      const ct=cd && cd.updatedAt||1;
+      const lt=ld && ld.updatedAt||0;
+      // Altijd overschrijven als cloud nieuwer is OF lokaal geen timestamp heeft
+      if(ct>lt){
+        localStorage.setItem(k,v);
+        count++;
+      }
+    });
+    setSyncStatus('ok');
+    setTimeout(()=>setSyncStatus('idle'),3000);
+    return count;
+  }catch(e){
+    console.warn('Sync fout:',e.message);
+    setSyncStatus('error');
+    setTimeout(()=>setSyncStatus('idle'),5000);
+    return 0;
+  }
+}
+
+// Auto-sync elke 5 minuten
+let _autoSyncInterval=null;
+function startAutoSync(){
+  if(_autoSyncInterval)clearInterval(_autoSyncInterval);
+  _autoSyncInterval=setInterval(async()=>{
+    const count=await syncAllFromCloud();
+    if(count>0&&curDate){loadDay(curDate);updateHours();}
+  },5*60*1000);
+}
+async function manualSync(){
+  showTip('Synchroniseren...','Data wordt opgehaald. Even geduld.','#006077');
+  const count=await syncAllFromCloud();
+  if(count>0){if(curDate){loadDay(curDate);updateHours();}showTip('Gesynchroniseerd',`${count} dag(en) opgehaald.`,'#008972');}
+  else showTip('Niets gevonden','Geen nieuwe data of geen verbinding.','#EB6334');
+}
+
+/* SAVE/LOAD */
+function saveDay(){
+  if(!curDate)return;
+  const slots={},tasks={},comms={};
+  document.querySelectorAll('.time-block[data-time]').forEach(b=>{
+    const ta=b.querySelector('.t-inp');
+    slots[b.dataset.time]={val:ta?ta.value:'',cat:b.dataset.cat||'',worked:b.classList.contains('worked'),endtime:b.dataset.endtime||'',continuationOf:b.dataset.continuationOf||'',rrfreq:b.dataset.rrfreq||'',rrendtype:b.dataset.rrendtype||'',rrcount:b.dataset.rrcount||'',rruntil:b.dataset.rruntil||'',location:b.dataset.location||''};
+  });
+  ['hoog','midden','laag'].forEach(p=>{tasks[p]=[];document.querySelectorAll('#tl-'+p+' .task-item').forEach(it=>{tasks[p].push({text:it.querySelector('.t-txt').value,done:it.querySelector('.t-cb').checked});});});
+  ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked});});});
+  const am=document.querySelector('.mood-btn.on');
+  const banner=getBannerData();
+  const obj={
+    updatedAt:Date.now(),
+    v:2, // versienummer zodat sync weet dat dit nieuwe data is
+    intent:document.getElementById('intentInp').value,
+    notes:document.getElementById('notesArea').value,
+    mood:am?am.textContent:'',
+    wStart:document.getElementById('wStart').value,
+    wEnd:document.getElementById('wEnd').value,
+    banner,slots,tasks,comms
+  };
+  const payload=JSON.stringify(obj);
+  const hk=sk(curDate)+'_history';
+  let hist=[];try{hist=JSON.parse(localStorage.getItem(hk))||[];}catch{}
+  const old=localStorage.getItem(sk(curDate));if(old)hist.unshift(old);
+  localStorage.setItem(hk,JSON.stringify(hist.slice(0,10)));
+  localStorage.setItem(sk(curDate),payload);
+  const hasContent=JSON.stringify(slots).length>50||document.getElementById('notesArea').value.trim();
+  if(hasContent)syncToCloud(sk(curDate),payload);
+}
+let _st;function autoSave(){clearTimeout(_st);_st=setTimeout(saveDay,800);}
+
+function clearUI(){
+  document.querySelectorAll('.time-block').forEach(b=>{
+    const ta=b.querySelector('.t-inp');if(ta){ta.value='';ta.style.height='';}
+    const ct=b.querySelector('.cat-tag');if(ct)ct.textContent='';
+    delete b.dataset.cat;delete b.dataset.endtime;delete b.dataset.continuationOf;
+    delete b.dataset.rrfreq;delete b.dataset.rrendtype;delete b.dataset.rrcount;delete b.dataset.rruntil;delete b.dataset.location;
+    b.classList.remove('worked','cont');
+    ['et-badge','rr-badge','loc-badge'].forEach(cls=>{const el=b.querySelector('.'+cls);if(el)el.remove();});
+  });
+  ['hoog','midden','laag'].forEach(p=>document.getElementById('tl-'+p).innerHTML='');
+  ['bellen','mailen','bespreken'].forEach(t=>document.getElementById('cl-'+t).innerHTML='');
+  document.getElementById('intentInp').value='';
+  document.getElementById('notesArea').value='';
+  document.getElementById('wStart').value='08:00';
+  document.getElementById('wEnd').value='16:30';
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('hLoc').textContent='';
+  setBannerData(null);
+  const page=document.querySelector('.page');if(page)page.style.background='white';
+}
+
+function applyS(time,val,cat){
+  const b=document.querySelector(`.time-block[data-time="${time}"]`);if(!b)return;
+  const ta=b.querySelector('.t-inp'),ct=b.querySelector('.cat-tag');
+  if(ta&&!ta.value.trim()){ta.value=val;ta.style.height='auto';ta.style.height=Math.max(22,ta.scrollHeight)+'px';}
+  if(!b.dataset.cat&&cat)setCatS(b,ct,cat);
+}
+
 function applyFixed(dateStr){
   const d=pd(dateStr),dow=d.getDay(),mo=d.getMonth();
   document.getElementById('hLoc').textContent=WL[dow]?'Locatie: '+WL[dow]:'';
@@ -121,382 +314,3 @@ function gotoMonth(m){
     selectDay(start);
   }catch(e){console.error('gotoMonth:',e);}
 }
-
-/* CALENDAR */
-function renderCal(){
-  const cal=document.getElementById('mCal');cal.innerHTML='';
-  document.getElementById('mTitle').textContent=MONTHS_NL[curMonth].charAt(0).toUpperCase()+MONTHS_NL[curMonth].slice(1)+' '+YEAR;
-  ['ma','di','wo','do','vr','za','zo'].forEach(d=>{const h=document.createElement('div');h.className='cal-hdr';h.textContent=d;cal.appendChild(h);});
-  const fjs=new Date(YEAR,curMonth,1).getDay(),fmon=(fjs===0)?6:fjs-1;
-  const total=new Date(YEAR,curMonth+1,0).getDate(),today=isoToday();
-  for(let i=0;i<fmon;i++){const e=document.createElement('div');e.className='cal-day empty';cal.appendChild(e);}
-  let mo=0;
-  for(let d=1;d<=total;d++){
-    const iso=toISO(YEAR,curMonth,d),jsDay=new Date(YEAR,curMonth,d).getDay();
-    const el=document.createElement('div');
-    el.className='cal-day'+(jsDay===0||jsDay===6?' weekend':'');
-    // Schoolvakantie / vrije dag kleur
-    const sf=SCHOOL_FREE[iso];
-    if(sf) el.style.background=sf.color;
-    if(iso===today)el.classList.add('today');
-    if(iso===curDate)el.classList.add('sel');
-    const num=document.createElement('div');num.className='cal-num';num.textContent=d;el.appendChild(num);
-    const mins=iso===curDate?workedMins():storedMins(iso);mo+=mins;
-    if(mins>0){const h=document.createElement('div');h.className='cal-hours';h.textContent=m2s(mins);el.appendChild(h);}
-    // Banner tonen in kalenderdag
-    const bannerRaw=iso===curDate?null:localStorage.getItem(sk(iso));
-    if(bannerRaw){
-      try{
-        const bd=JSON.parse(bannerRaw);
-        if(bd.banner&&(bd.banner.type||bd.banner.text)){
-          const bt=bd.banner.type||'';
-          const label=bt?{vrij:'Vrij',vakantie:'Vakantie',studiedag:'Studie',ziek:'Ziek',verjaardag:'Verjaardag'}[bt]||bt:bd.banner.text;
-          const color=CHIP_COLORS[bt]||'#9aabb5';
-          const bl=document.createElement('div');bl.style.cssText=`font-size:7px;font-weight:700;background:${color};color:white;border-radius:2px;padding:1px 2px;margin-top:1px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;`;bl.textContent=label;el.appendChild(bl);
-        }
-      }catch{}
-    }
-    // Huidige dag banner
-    if(iso===curDate){
-      const cb=getBannerData();
-      if(cb.type||cb.text){
-        const label=cb.type?{vrij:'Vrij',vakantie:'Vakantie',studiedag:'Studie',ziek:'Ziek',verjaardag:'Verjaardag'}[cb.type]||cb.type:cb.text;
-        const color=CHIP_COLORS[cb.type]||'#9aabb5';
-        const bl=document.createElement('div');bl.style.cssText=`font-size:7px;font-weight:700;background:${color};color:white;border-radius:2px;padding:1px 2px;margin-top:1px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;`;bl.textContent=label;el.appendChild(bl);
-      }
-    }
-    el.onclick=()=>selectDay(iso);cal.appendChild(el);
-  }
-  document.getElementById('mTotal').textContent='Totaal: '+m2s(mo);
-}
-
-/* CLEAR/RESET */
-function clearCurDay(){if(!confirm('Dag wissen?'))return;if(curDate)localStorage.removeItem(sk(curDate));loadDay(curDate);renderCal();}
-function fullReset(){if(!confirm('Alle data wissen?'))return;Object.keys(localStorage).filter(k=>k.startsWith('dp26_')).forEach(k=>localStorage.removeItem(k));window.location.reload();}
-function restorePreviousVersion(){
-  const hk=sk(curDate)+'_history';
-  let hist=[];try{hist=JSON.parse(localStorage.getItem(hk))||[];}catch{}
-  if(!hist.length){alert('Geen eerdere versie beschikbaar.');return;}
-  if(!confirm('Vorige versie terugzetten?'))return;
-  localStorage.setItem(sk(curDate),hist[0]);loadDay(curDate);updateHours();
-  showTip('Hersteld','Vorige versie is teruggezet.','#006077');
-}
-
-/* EXPORT/IMPORT */
-function exportData(){
-  const backup={version:'dp26-v1',exported:new Date().toISOString(),data:{}};
-  Object.keys(localStorage).forEach(k=>{if(k.startsWith('dp26_'))backup.data[k]=localStorage.getItem(k);});
-  const count=Object.keys(backup.data).length;
-  if(!count){alert('Geen data om te exporteren.');return;}
-  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`dagplanner-backup-${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
-  showTip('Geexporteerd',`${count} dag(en) opgeslagen. Mail het bestand en importeer op het andere apparaat.`,'#5573a0');
-}
-function importData(input){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const backup=JSON.parse(e.target.result);
-      if(!backup.version||!backup.data)throw new Error('Ongeldig bestand');
-      const count=Object.keys(backup.data).length;
-      if(!confirm(`${count} dag(en) importeren?`)){input.value='';return;}
-      Object.entries(backup.data).forEach(([k,v])=>localStorage.setItem(k,v));
-      if(curDate)loadDay(curDate);updateHours();input.value='';
-      showTip('Geimporteerd',`${count} dag(en) ingeladen.`,'#008972');
-    }catch(err){alert('Fout: '+err.message);input.value='';}
-  };
-  reader.readAsText(file);
-}
-
-/* ICS IMPORT VANUIT OUTLOOK */
-function importICS(input){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const text=e.target.result;
-      const events=parseICS(text);
-      if(!events.length){alert('Geen afspraken gevonden in dit bestand.');input.value='';return;}
-
-      // Filter alleen afspraken binnen mei-juli 2026
-      const relevant=events.filter(ev=>MONTHS.includes(ev.date.getMonth())&&ev.date.getFullYear()===YEAR);
-      if(!relevant.length){alert('Geen afspraken gevonden voor mei t/m juli 2026.');input.value='';return;}
-
-      if(!confirm(`${relevant.length} afspraak/afspraken gevonden voor mei-juli 2026.\nInladen in de planner?`)){input.value='';return;}
-
-      // Groepeer per dag
-      const perDay={};
-      relevant.forEach(ev=>{
-        const iso=toISO(ev.date.getFullYear(),ev.date.getMonth(),ev.date.getDate());
-        if(!perDay[iso])perDay[iso]=[];
-        perDay[iso].push(ev);
-      });
-
-      // Sla op per dag
-      let imported=0;
-      Object.entries(perDay).forEach(([iso,evs])=>{
-        const raw=localStorage.getItem(sk(iso));
-        let dayData={slots:{},tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]},intent:'',notes:'',wStart:'08:00',wEnd:'16:30',mood:'',updatedAt:Date.now()};
-        if(raw){try{dayData=JSON.parse(raw);}catch(ex){}}
-
-        evs.forEach(ev=>{
-          // Vind de dichtstbijzijnde kwartierslot
-          const slots=getTimeSlots(ev.startTime,ev.endTime);
-          const cat=guessCat(ev.summary,ev.location);
-          slots.forEach((t,i)=>{
-            if(!dayData.slots[t])dayData.slots[t]={val:'',cat:'',worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:'',location:''};
-            // Niet overschrijven als al gevuld
-            if(!dayData.slots[t].val){
-              dayData.slots[t].val=i===0?ev.summary:'';
-              dayData.slots[t].cat=cat;
-              if(ev.location&&i===0)dayData.slots[t].location=ev.location;
-              if(i===0&&slots.length>1)dayData.slots[t].endtime=slots[slots.length-1];
-              if(i>0)dayData.slots[t].continuationOf=slots[0];
-            }
-          });
-          imported++;
-        });
-
-        dayData.updatedAt=Date.now();
-        localStorage.setItem(sk(iso),JSON.stringify(dayData));
-        syncToCloud(sk(iso),JSON.stringify(dayData));
-      });
-
-      // Herlaad huidige dag als die in de import zit
-      if(curDate&&perDay[curDate]){loadDay(curDate);updateHours();}
-      input.value='';
-      showTip('Outlook geimporteerd',`${imported} afspraak/afspraken ingeladen voor ${Object.keys(perDay).length} dag(en). Navigeer naar de dagen om ze te bekijken.`,'#217346');
-
-    }catch(err){
-      console.error(err);
-      alert('Fout bij inlezen: '+err.message);
-      input.value='';
-    }
-  };
-  reader.readAsText(file,'utf-8');
-}
-
-function parseICS(text){
-  const events=[];
-  const lines=text.replace(/\r\n /g,'').replace(/\r\n\t/g,'').split(/\r\n|\n|\r/);
-  let current=null;
-  lines.forEach(line=>{
-    if(line==='BEGIN:VEVENT'){current={summary:'',location:'',startTime:'',endTime:'',date:null};}
-    else if(line==='END:VEVENT'&&current){
-      if(current.date)events.push(current);
-      current=null;
-    } else if(current){
-      if(line.startsWith('SUMMARY:'))current.summary=line.slice(8).trim();
-      else if(line.startsWith('LOCATION:'))current.location=line.slice(9).trim();
-      else if(line.startsWith('DTSTART')){
-        const val=line.split(':').pop().trim();
-        const parsed=parseICSDate(val);
-        if(parsed){current.date=parsed.date;current.startTime=parsed.time;}
-      }
-      else if(line.startsWith('DTEND')){
-        const val=line.split(':').pop().trim();
-        const parsed=parseICSDate(val);
-        if(parsed)current.endTime=parsed.time;
-      }
-    }
-  });
-  return events;
-}
-
-function parseICSDate(val){
-  // Formaat: 20260519T090000 of 20260519T090000Z
-  const m=val.replace('Z','').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
-  if(!m)return null;
-  const date=new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));
-  const h=parseInt(m[4]),min=parseInt(m[5]);
-  const time=`${String(h).padStart(2,'0')}:${String(Math.round(min/15)*15).padStart(2,'0')}`;
-  return{date,time};
-}
-
-function getTimeSlots(start,end){
-  if(!start)return[];
-  const slots=[];
-  let [h,m]=start.split(':').map(Number);
-  // Afronden naar kwartier
-  m=Math.round(m/15)*15;if(m===60){h++;m=0;}
-  const endH=end?parseInt(end.split(':')[0]):h;
-  const endM=end?Math.round(parseInt(end.split(':')[1])/15)*15:m+15;
-
-  let cur=h*60+m;
-  const fin=endH*60+endM;
-  while(cur<fin&&cur<=21*60+45){
-    const hh=Math.floor(cur/60),mm=cur%60;
-    // Alleen sloten die in het grid zitten (07:30-21:45)
-    if(hh>7||(hh===7&&mm>=30)){
-      slots.push(`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`);
-    }
-    cur+=15;
-  }
-  return slots;
-}
-
-function guessCat(summary,location){
-  const s=(summary+' '+(location||'')).toLowerCase();
-  if(/teams|zoom|meet|online|videovergadering|video/i.test(s))return'online';
-  if(/tel|bel|gesprek|call/i.test(s)&&!/overleg|vergader/i.test(s))return'telefoon';
-  if(/vergader|overleg|meeting|beraad/i.test(s)){
-    if(/extern|buiten|locatie|mariaplaats|den haag|gouda|utrecht|lopik/i.test(s))return'extern';
-    return'locatie';
-  }
-  if(/admin|verslag|notulen|mail|rapport/i.test(s))return'admin';
-  if(/reis|reizen|trein|bus|auto/i.test(s))return'reistijd';
-  return'locatie';
-/* TIP */
-function showTip(title,html,color){
-  const old=document.getElementById('syncTip');if(old)old.remove();
-  const tip=document.createElement('div');tip.id='syncTip';tip.className='sync-tip';
-  const inner=document.createElement('div');inner.className='sync-tip-inner';inner.style.borderTopColor=color;
-  const ttl=document.createElement('div');ttl.className='sync-tip-title';ttl.style.color=color;ttl.textContent=title;
-  const bod=document.createElement('div');bod.className='sync-tip-body';bod.innerHTML=html;
-  const btn=document.createElement('button');btn.textContent='Sluiten';btn.onclick=()=>tip.remove();
-  inner.append(ttl,bod,btn);tip.appendChild(inner);
-  document.body.appendChild(tip);
-  setTimeout(()=>{const t=document.getElementById('syncTip');if(t)t.remove();},12000);
-}
-
-/* ICS */
-function exportICS(){
-  if(!curDate){alert('Selecteer eerst een dag.');return;}
-  const all=Array.from(document.querySelectorAll('.time-block[data-time]'));
-  const events=[];let i=0;
-  while(i<all.length){
-    const b=all[i];const ta=b.querySelector('.t-inp');const val=ta?ta.value.trim():'';
-    if(val&&!b.dataset.continuationOf&&b.dataset.cat!=='pauze'){
-      const st=b.dataset.time;let et;
-      if(b.dataset.endtime){et=b.dataset.endtime;const ei=all.findIndex(x=>x.dataset.time===et);i=Math.max(i+1,ei+1);}
-      else{let j=i+1;while(j<all.length){const nv=(all[j].querySelector('.t-inp') && all[j].querySelector('.t-inp').value).trim()||'';if(nv===val&&!all[j].dataset.continuationOf)j++;else break;}et=all[j]?all[j].dataset.time:amins(st,15);i=j;}
-      events.push({title:val,start:st,end:et,cat:b.dataset.cat||'',location:b.dataset.location||'',rr:buildRR(b)});
-    }else i++;
-  }
-  if(!events.length){alert('Geen afspraken gevonden.');return;}
-  const CL={locatie:'Overleg op locatie',extern:'Overleg extern',online:'Online overleg',admin:'Administratieve taak',telefoon:'Telefonisch contact',reistijd:'Reistijd'};
-  const now=new Date().toISOString().replace(/[-:.]/g,'').slice(0,15)+'Z';
-  const vtz=['BEGIN:VTIMEZONE','TZID:Europe/Amsterdam','BEGIN:STANDARD','TZNAME:CET','DTSTART:19701025T030000','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10','END:STANDARD','BEGIN:DAYLIGHT','TZNAME:CEST','DTSTART:19700329T020000','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3','END:DAYLIGHT','END:VTIMEZONE'].join('\r\n');
-  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Dagplanner WZ//NL\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n'+vtz+'\r\n';
-  events.forEach((ev,idx)=>{
-    const d=curDate.replace(/-/g,''),ds=`${d}T${ev.start.replace(':','')}00`,de=`${d}T${ev.end.replace(':','')}00`;
-    const cl=CL[ev.cat]||'',desc=cl?`Categorie: ${cl}${ev.location?'\\nLocatie: '+ev.location:''}`:ev.location||'';
-    ics+=`BEGIN:VEVENT\r\nUID:dp-${curDate}-${idx}-${Date.now()}@wz\r\nDTSTAMP:${now}\r\n`;
-    ics+=`DTSTART;TZID=Europe/Amsterdam:${ds}\r\nDTEND;TZID=Europe/Amsterdam:${de}\r\n`;
-    ics+=`SUMMARY:${esc(ev.title)}\r\n`;
-    if(ev.location)ics+=`LOCATION:${esc(ev.location)}\r\n`;
-    if(desc)ics+=`DESCRIPTION:${esc(desc)}\r\n`;
-    if(cl)ics+=`CATEGORIES:${esc(cl)}\r\n`;
-    if(ev.rr)ics+=`RRULE:${ev.rr}\r\n`;
-    ics+='BEGIN:VALARM\r\nTRIGGER:-PT15M\r\nACTION:DISPLAY\r\nDESCRIPTION:Herinnering\r\nEND:VALARM\r\nEND:VEVENT\r\n';
-  });
-  ics+='END:VCALENDAR';
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar;charset=utf-8'}));
-  a.download=`dagplanner-${curDate}.ics`;document.body.appendChild(a);a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
-  showTip('Importeer in Outlook','1. Open Outlook<br>2. Bestand > Openen > Agenda importeren<br>3. Kies het .ics bestand<br>4. Klik Importeren','#1C829E');
-}
-
-function amins(t,n){const[h,m]=t.split(':').map(Number),tot=h*60+m+n;return`${String(Math.floor(tot/60)).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;}
-function esc(s){return s.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');}
-function buildRR(b){const f=b.dataset.rrfreq;if(!f)return null;let freq=f,int=1;if(f==='BIWEEKLY'){freq='WEEKLY';int=2;}let r=`FREQ=${freq}`;if(int>1)r+=`;INTERVAL=${int}`;if(b.dataset.rrendtype==='until'&&b.dataset.rruntil)r+=`;UNTIL=${b.dataset.rruntil.replace(/-/g,'')}T000000Z`;else r+=`;COUNT=${b.dataset.rrcount||10}`;return r;}
-
-/* SEED */
-function mks(a){const s={};a.forEach(af=>af.tijden.forEach(t=>{s[t]={val:af.label,cat:af.cat,worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:''};}));return s;}
-function seedIfNew(d,data){if(!localStorage.getItem(sk(d)))localStorage.setItem(sk(d),JSON.stringify(data));}
-function seedAll(){
-  seedIfNew('2026-05-14',{intent:'Leerlingen begeleiden en BiOND-afstemming afronden',notes:'Terugbellen: moeder van Youssef\nOPP deadline: vrijdag 16 mei',wStart:'07:30',wEnd:'16:30',mood:'',
-    slots:mks([{tijden:['07:30','07:45'],label:'E-mails doornemen',cat:'admin'},{tijden:['08:00','08:15'],label:'Voorbereiding ondersteuningsgesprekken',cat:'admin'},{tijden:['08:30','08:45'],label:'Gesprek leerling - planningsproblemen (kamer 12)',cat:'locatie'},{tijden:['09:00','09:15','09:30','09:45'],label:'Teamoverleg ondersteuning - weekplanning',cat:'locatie'},{tijden:['11:00','11:15'],label:'Verslaglegging ondersteuningsdossiers',cat:'admin'},{tijden:['11:30','11:45'],label:'Telefonisch contact ouder - concentratieproblemen',cat:'telefoon'},{tijden:['13:15','13:30','13:45'],label:'NT2 ondersteuningsklas - begeleiding leerlingen',cat:'locatie'},{tijden:['14:15','14:30'],label:'Planningsgesprek leerling (studievaardigheden)',cat:'locatie'},{tijden:['15:15','15:30','15:45'],label:'Administratie: OPP formulieren verwerken',cat:'admin'},{tijden:['16:00','16:15'],label:'Afsluiting dag - to-do lijst bijwerken',cat:'admin'}]),
-    tasks:{hoog:[{text:'OPP-formulieren verwerken (deadline vrijdag)',done:false},{text:'Terugbellen ouder leerling 3B',done:false},{text:'BiOND voortgangsverslag afronden',done:false}],midden:[{text:'Agenda ondersteuningsklas week 21',done:false},{text:'Afspraak intern begeleider PO',done:false},{text:'Doorstroomtoets leerling controleren',done:true}],laag:[{text:'Huisstijltemplate nieuwsbrief',done:false},{text:'NT2-leeromgeving evalueren',done:false},{text:'Scholingsaanbod neurodiversiteit bekijken',done:false}]},
-    comms:{bellen:[{text:'Moeder Youssef - begeleidingsplan',done:false},{text:'Dyslexiecoach - vervolggesprek',done:false}],mailen:[{text:'BiOND - notulen zorgoverleg',done:false},{text:'Mentor klas 2A - signalering',done:true}],bespreken:[{text:'Teamleider - capaciteit ondersteuningsklas',done:false},{text:'Collega - overdracht leerling',done:false}]}});
-  seedIfNew('2026-05-19',{intent:'Driehoeksgesprekken, puzzelen en OPP-bijeenkomst',notes:'17:00 Driehoeksgesprek L.Metaal - 30 min.\n15:00 OPP online - 2 uur\n13:00 Puzzelen kamer Marleen\n10:40 Jessica Snoek overleg',wStart:'07:30',wEnd:'17:30',mood:'',
-    slots:mks([{tijden:['10:45','11:00'],label:'Jessica Snoek - overleg (werkkamer Marleen)',cat:'extern'},{tijden:['13:00','13:15','13:30','13:45'],label:'Puzzelen - kamer Marleen',cat:'locatie'},{tijden:['15:00','15:15','15:30','15:45','16:00','16:15','16:30','16:45'],label:'OPP - online bijeenkomst',cat:'online'},{tijden:['17:00','17:15'],label:'Driehoeksgesprekken klas 2 - L.Metaal',cat:'locatie'}]),
-    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
-  seedIfNew('2026-05-20',{intent:'Bijeenkomst Passend Onderwijs Den Haag',notes:'The Hague Conference Centre New Babylon\nAnna van Buerenplein 48, 2595 DA Den Haag\n\nREISADVIES HEEN (OV)\nVertrek ~13:55 Schoonhoven-West\nBus 497 > Gouda Station (20 min)\nIC Gouda > Den Haag CS (17 min)\nLopen naar New Babylon: 5 min\nOV-chipkaart inchecken!\n\nTERUG: vertrek 18:00 Den Haag CS > thuis 19:00',wStart:'08:00',wEnd:'19:00',mood:'',
-    slots:mks([{tijden:['14:00'],label:'Vertrek - bus 497 Schoonhoven-West naar Gouda Station',cat:'reistijd'},{tijden:['14:15'],label:'Bus 497 onderweg naar Gouda (20 min)',cat:'reistijd'},{tijden:['14:30'],label:'IC Gouda naar Den Haag Centraal (17 min)',cat:'reistijd'},{tijden:['14:45'],label:'Aankomst Den Haag CS - lopen naar New Babylon',cat:'reistijd'},{tijden:['15:00'],label:'Buffer aankomst The Hague Conference Centre',cat:'reistijd'},{tijden:['16:00','16:15','16:30','16:45','17:00','17:15','17:30','17:45'],label:'Bijeenkomst Passend Onderwijs - The Hague Conference Centre New Babylon',cat:'extern'},{tijden:['18:00'],label:'Vertrek Den Haag CS - IC richting Gouda',cat:'reistijd'},{tijden:['18:15'],label:'IC Den Haag CS naar Gouda (17 min)',cat:'reistijd'},{tijden:['18:30'],label:'Bus 497 Gouda naar Schoonhoven-West (20 min)',cat:'reistijd'},{tijden:['18:45'],label:'Aankomst Schoonhoven',cat:'reistijd'}]),
-    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
-  seedIfNew('2026-05-21',{intent:'Overleg Audra, Mdo Femke, driehoeksgesprekken en kapper',notes:'CONFLICT 15:15-15:45: Vervolgoverleg Leerplein I.G. overlapt met Mdo Femke\nOrganisator: Lidy van Nijhuis\n\n16:00 Driehoeksgesprek Isa van Wijngaarden - 30 min.\n16:30 Kapper - Dam 7, Schoonhoven',wStart:'07:30',wEnd:'17:30',mood:'',
-    slots:mks([{tijden:['12:15','12:30','12:45','13:00'],label:'Overleg Audra - Vergaderruimte A66 (Teams)',cat:'online'},{tijden:['15:00','15:15','15:30','15:45'],label:'Mdo Femke - Vergaderruimte A66',cat:'locatie'},{tijden:['16:00','16:15'],label:'Driehoeksgesprekken klas 2 - Isa van Wijngaarden',cat:'locatie'},{tijden:['16:15','16:30'],label:'Fiets naar Kapper',cat:'reistijd'},{tijden:['16:30','16:45','17:00','17:15'],label:'Kapper - Dam 7, Schoonhoven',cat:'extern'}]),
-    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
-}
-
-/* CLOCK */
-let _clk;
-function startClock(){
-  clearInterval(_clk);
-  _clk=setInterval(()=>{
-    if(curDate===isoToday()){
-      const w=workedMins(),el=document.getElementById('hToday');
-      if(w>0){el.textContent=m2s(w);el.style.color='';}
-      else{const s=document.getElementById('wStart').value;if(s){const n=new Date(),nm=n.getHours()*60+n.getMinutes(),diff=nm-t2m(s);if(diff>0){el.textContent=m2s(diff);el.style.color='#9aabb5';}}}
-    }
-  },60000);
-}
-
-/* INIT */
-document.addEventListener('DOMContentLoaded',()=>{
-  buildGrid();
-
-  // Navigatie
-  document.getElementById('btnPrev').addEventListener('click',()=>shiftDay(-1));
-  document.getElementById('btnNext').addEventListener('click',()=>shiftDay(1));
-  document.querySelectorAll('.month-tab[data-month]').forEach(btn=>{
-    btn.addEventListener('click',()=>gotoMonth(parseInt(btn.dataset.month)));
-  });
-
-  // Knoppen
-  document.getElementById('btnPrint').addEventListener('click',()=>window.print());
-  document.getElementById('btnOutlook').addEventListener('click',()=>exportICS());
-  document.getElementById('btnExport').addEventListener('click',()=>exportData());
-  document.getElementById('btnImport').addEventListener('click',()=>document.getElementById('importFile').click());
-  document.getElementById('btnIcs').addEventListener('click',()=>document.getElementById('icsFile').click());
-  document.getElementById('btnSync').addEventListener('click',()=>manualSync());
-  document.getElementById('btnClear').addEventListener('click',()=>clearCurDay());
-  document.getElementById('btnReset').addEventListener('click',()=>fullReset());
-
-  // Dagbanner chips
-  document.querySelectorAll('.day-chip').forEach(btn=>{
-    btn.addEventListener('click',()=>toggleChip(btn));
-  });
-
-  // Stemming
-  document.querySelectorAll('.mood-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>setMood(btn));
-  });
-
-  document.getElementById('intentInp').addEventListener('input',autoSave);
-  document.getElementById('notesArea').addEventListener('input',autoSave);
-  seedAll();
-  const today=isoToday();
-  const td=pd(today);
-  const todayMonth=td.getMonth();
-  const todayYear=td.getFullYear();
-  const inRange=todayYear===YEAR&&MONTHS.includes(todayMonth);
-  const start=inRange?today:toISO(YEAR,4,1);
-  curMonth=pd(start).getMonth();
-  document.querySelectorAll('.month-tab').forEach((t,i)=>{
-    t.classList.toggle('active',MONTHS[i]===curMonth);
-  });
-  selectDay(start);
-  startClock();
-  setTimeout(async()=>{
-    const count=await syncAllFromCloud();
-    if(count>0&&curDate){loadDay(curDate);updateHours();}
-    startAutoSync();
-  },1500);
-  if('serviceWorker' in navigator){
-    // Verwijder oude service workers
-    navigator.serviceWorker.getRegistrations().then(regs=>{
-      regs.forEach(r=>r.unregister());
-    });
-  }
-  let dp=null;
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const b=document.getElementById('installBanner');if(b)b.style.display='flex';});
-  window.addEventListener('appinstalled',()=>{dp=null;const b=document.getElementById('installBanner');if(b)b.style.display='none';});
-  const ib=document.getElementById('installBtn');if(ib)ib.addEventListener('click',async()=>{if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;if(outcome==='accepted'){const b=document.getElementById('installBanner');if(b)b.style.display='none';}dp=null;});
-  const ic=document.getElementById('installClose');if(ic)ic.addEventListener('click',()=>{const b=document.getElementById('installBanner');if(b)b.style.display='none';});
-});
-
