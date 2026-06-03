@@ -404,3 +404,7 @@ function clearUI(){
   setBannerData(null);
   const page=document.querySelector('.page');if(page)page.style.background='white';
 }
+-e 
+
+
+// end
