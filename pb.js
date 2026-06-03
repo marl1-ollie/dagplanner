@@ -342,7 +342,7 @@ function exportICS(){
   const CL={locatie:'Overleg op locatie',extern:'Overleg extern',online:'Online overleg',admin:'Administratieve taak',telefoon:'Telefonisch contact',reistijd:'Reistijd'};
   const now=new Date().toISOString().replace(/[-:.]/g,'').slice(0,15)+'Z';
   const vtz=['BEGIN:VTIMEZONE','TZID:Europe/Amsterdam','BEGIN:STANDARD','TZNAME:CET','DTSTART:19701025T030000','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10','END:STANDARD','BEGIN:DAYLIGHT','TZNAME:CEST','DTSTART:19700329T020000','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3','END:DAYLIGHT','END:VTIMEZONE'].join('\r\n');
-  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-
+  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Dagplanner WZ//NL\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n'+vtz+'\r\n';
   events.forEach((ev,idx)=>{
     const d=curDate.replace(/-/g,''),ds=`${d}T${ev.start.replace(':','')}00`,de=`${d}T${ev.end.replace(':','')}00`;
     const cl=CL[ev.cat]||'',desc=cl?`Categorie: ${cl}${ev.location?'\\nLocatie: '+ev.location:''}`:ev.location||'';

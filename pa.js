@@ -42,7 +42,7 @@ const SAVED_LOCS=[
   {label:'Vergaderruimte A66',                val:'Vergaderruimte A66, CSG Willem de Zwijger',  fiets:null,  cat:'locatie'},
   {label:'CSG Willem de Zwijger (algemeen)',  val:'CSG Willem de Zwijger, Schoonhoven',         fiets:true,  cat:'locatie'},
 ];
-const SYNC_URL='https:
+const SYNC_URL='https://script.google.com/macros/s/AKfycbyGn6SLIl5HSlIPEbXLz9nUwSdYRhfeDlkrLF4qH9h1LxnocBy05RQ2gd0u-2bCipPe/exec';
 let curDate=null,curMonth=4;
 const sk=d=>'dp26_'+d;
 const toISO=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
