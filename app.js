@@ -1,4 +1,3 @@
-
 const YEAR=2026,MONTHS=[4,5,6];
 const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const MONTHS_NL=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
@@ -230,6 +229,51 @@ function applyFixed(dateStr){
     const na=document.getElementById('notesArea');
     if(!na.value)na.value='Hondendagopvang Matties\nLekdijk West 44, 3411 MX Lopik\nBrengen 07:30 - Ophalen 17:00\nRoute: N210 richting Lopik > Lekdijk West (15 min)';
   }
+}
+function saveDay(){
+  if(!curDate)return;
+  const blocks=Array.from(document.querySelectorAll('.time-block[data-time]'));
+  const times={};
+  blocks.forEach(b=>{
+    const ta=b.querySelector('.t-inp');
+    const val=ta?ta.value:'';
+    const lb=b.querySelector('.loc-badge');
+    times[b.dataset.time]={
+      val,cat:b.dataset.cat||'',worked:b.classList.contains('worked'),
+      endtime:b.dataset.endtime||'',continuationOf:b.dataset.continuationOf||'',
+      location:b.dataset.location||'',
+      rrfreq:b.dataset.rrfreq||'',rrendtype:b.dataset.rrendtype||'',
+      rrcount:b.dataset.rrcount||'',rruntil:b.dataset.rruntil||''
+    };
+  });
+  const tasks={hoog:[],midden:[],laag:[]};
+  ['hoog','midden','laag'].forEach(p=>{
+    document.querySelectorAll(`#tl-${p} .task-item`).forEach(it=>{
+      const cb=it.querySelector('.t-cb'),ta=it.querySelector('.t-txt');
+      if(ta)tasks[p].push({text:ta.value,done:cb?cb.checked:false});
+    });
+  });
+  const comms={bellen:[],mailen:[],bespreken:[]};
+  ['bellen','mailen','bespreken'].forEach(t=>{
+    document.querySelectorAll(`#cl-${t} .comm-item`).forEach(it=>{
+      const cb=it.querySelector('.c-cb'),ta=it.querySelector('.c-txt');
+      if(ta)comms[t].push({text:ta.value,done:cb?cb.checked:false});
+    });
+  });
+  const mood=document.querySelector('.mood-btn.on');
+  const chips=Array.from(document.querySelectorAll('.day-chip.active')).map(c=>c.dataset.type);
+  const bannerInp=document.getElementById('dayBannerInp');
+  const data={
+    times,tasks,comms,
+    notes:document.getElementById('notesArea').value,
+    intent:document.getElementById('intentInp').value,
+    mood:mood?Array.from(document.querySelectorAll('.mood-btn')).indexOf(mood):-1,
+    wStart:document.getElementById('wStart').value,
+    wEnd:document.getElementById('wEnd').value,
+    chips,bannerText:bannerInp?bannerInp.value:'',
+    banner:{type:chips[0]||'',text:bannerInp?bannerInp.value:''}
+  };
+  localStorage.setItem(sk(curDate),JSON.stringify(data));
 }
 function loadDay(dateStr){
   clearUI();
@@ -492,7 +536,7 @@ function guessCat(summary,location){
   }
   if(/admin|verslag|notulen|mail|rapport/i.test(s))return'admin';
   if(/reis|reizen|trein|bus|auto/i.test(s))return'reistijd';
- return'locatie';
+  return'locatie';
 }
 function showTip(title,html,color){
   const old=document.getElementById('syncTip');if(old)old.remove();
@@ -638,11 +682,3 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
 });
-var _done=1;
-var _done2=2;
-var _done3=3;
-var _done4=4;
-var _done5=5;
-var _done6=6;
-var _done7=7;
-var _done8=8;
