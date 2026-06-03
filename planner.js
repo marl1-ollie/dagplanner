@@ -1,4 +1,6 @@
 
+
+
 const YEAR=2026,MONTHS=[4,5,6];
 const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const MONTHS_NL=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
@@ -114,7 +116,8 @@ function makePicker(row,ct){
       .filter(sl=>!filter||sl.label.toLowerCase().includes(filter))
       .forEach(sl=>{
         const s=document.createElement('div');s.className='loc-sug-item';
-        const ic=document.createElement('span');ic.style.cssText='font-size:10px;flex-shrink:0;width:40px';ic.textContent=icon;
+        const ic=document.createElement('span');ic.style.cssText='font-size:10px;flex-shrink:0;width:40px';
+        ic.textContent=sl.fiets===null?'[school]':sl.fiets?'[fiets]':'[auto]';
         const nm=document.createElement('span');nm.textContent=sl.label;
         s.append(ic,nm);
         s.onclick=e=>{e.stopPropagation();locInp.value=sl.val;locInp.dataset.fiets=sl.fiets===null?'null':sl.fiets?'1':'0';locSug.style.display='none';};
@@ -356,8 +359,8 @@ async function syncAllFromCloud(){
       let cd,ld;
       try{cd=JSON.parse(v);}catch{return;}
       try{ld=JSON.parse(localStorage.getItem(k));}catch{ld=null;}
-      const ct=cd?.updatedAt||1;
-      const lt=ld?.updatedAt||0;
+      const ct=cd && cd.updatedAt||1;
+      const lt=ld && ld.updatedAt||0;
       // Altijd overschrijven als cloud nieuwer is OF lokaal geen timestamp heeft
       if(ct>lt){
         localStorage.setItem(k,v);
@@ -825,7 +828,7 @@ function exportICS(){
     if(val&&!b.dataset.continuationOf&&b.dataset.cat!=='pauze'){
       const st=b.dataset.time;let et;
       if(b.dataset.endtime){et=b.dataset.endtime;const ei=all.findIndex(x=>x.dataset.time===et);i=Math.max(i+1,ei+1);}
-      else{let j=i+1;while(j<all.length){const nv=all[j].querySelector('.t-inp')?.value.trim()||'';if(nv===val&&!all[j].dataset.continuationOf)j++;else break;}et=all[j]?all[j].dataset.time:amins(st,15);i=j;}
+      else{let j=i+1;while(j<all.length){const nv=(all[j].querySelector('.t-inp') && all[j].querySelector('.t-inp').value).trim()||'';if(nv===val&&!all[j].dataset.continuationOf)j++;else break;}et=all[j]?all[j].dataset.time:amins(st,15);i=j;}
       events.push({title:val,start:st,end:et,cat:b.dataset.cat||'',location:b.dataset.location||'',rr:buildRR(b)});
     }else i++;
   }
@@ -861,21 +864,8 @@ function buildRR(b){const f=b.dataset.rrfreq;if(!f)return null;let freq=f,int=1;
 function mks(a){const s={};a.forEach(af=>af.tijden.forEach(t=>{s[t]={val:af.label,cat:af.cat,worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:''};}));return s;}
 function seedIfNew(d,data){if(!localStorage.getItem(sk(d)))localStorage.setItem(sk(d),JSON.stringify(data));}
 function seedAll(){
-  seedIfNew('2026-05-14',{intent:'Leerlingen begeleiden en BiOND-afstemming afronden',notes:'Terugbellen: moeder van Youssef\nOPP deadline: vrijdag 16 mei',wStart:'07:30',wEnd:'16:30',mood:'',
-    slots:mks([{tijden:['07:30','07:45'],label:'E-mails doornemen',cat:'admin'},{tijden:['08:00','08:15'],label:'Voorbereiding ondersteuningsgesprekken',cat:'admin'},{tijden:['08:30','08:45'],label:'Gesprek leerling - planningsproblemen (kamer 12)',cat:'locatie'},{tijden:['09:00','09:15','09:30','09:45'],label:'Teamoverleg ondersteuning - weekplanning',cat:'locatie'},{tijden:['11:00','11:15'],label:'Verslaglegging ondersteuningsdossiers',cat:'admin'},{tijden:['11:30','11:45'],label:'Telefonisch contact ouder - concentratieproblemen',cat:'telefoon'},{tijden:['13:15','13:30','13:45'],label:'NT2 ondersteuningsklas - begeleiding leerlingen',cat:'locatie'},{tijden:['14:15','14:30'],label:'Planningsgesprek leerling (studievaardigheden)',cat:'locatie'},{tijden:['15:15','15:30','15:45'],label:'Administratie: OPP formulieren verwerken',cat:'admin'},{tijden:['16:00','16:15'],label:'Afsluiting dag - to-do lijst bijwerken',cat:'admin'}]),
-    tasks:{hoog:[{text:'OPP-formulieren verwerken (deadline vrijdag)',done:false},{text:'Terugbellen ouder leerling 3B',done:false},{text:'BiOND voortgangsverslag afronden',done:false}],midden:[{text:'Agenda ondersteuningsklas week 21',done:false},{text:'Afspraak intern begeleider PO',done:false},{text:'Doorstroomtoets leerling controleren',done:true}],laag:[{text:'Huisstijltemplate nieuwsbrief',done:false},{text:'NT2-leeromgeving evalueren',done:false},{text:'Scholingsaanbod neurodiversiteit bekijken',done:false}]},
-    comms:{bellen:[{text:'Moeder Youssef - begeleidingsplan',done:false},{text:'Dyslexiecoach - vervolggesprek',done:false}],mailen:[{text:'BiOND - notulen zorgoverleg',done:false},{text:'Mentor klas 2A - signalering',done:true}],bespreken:[{text:'Teamleider - capaciteit ondersteuningsklas',done:false},{text:'Collega - overdracht leerling',done:false}]}});
-  seedIfNew('2026-05-19',{intent:'Driehoeksgesprekken, puzzelen en OPP-bijeenkomst',notes:'17:00 Driehoeksgesprek L.Metaal - 30 min.\n15:00 OPP online - 2 uur\n13:00 Puzzelen kamer Marleen\n10:40 Jessica Snoek overleg',wStart:'07:30',wEnd:'17:30',mood:'',
-    slots:mks([{tijden:['10:45','11:00'],label:'Jessica Snoek - overleg (werkkamer Marleen)',cat:'extern'},{tijden:['13:00','13:15','13:30','13:45'],label:'Puzzelen - kamer Marleen',cat:'locatie'},{tijden:['15:00','15:15','15:30','15:45','16:00','16:15','16:30','16:45'],label:'OPP - online bijeenkomst',cat:'online'},{tijden:['17:00','17:15'],label:'Driehoeksgesprekken klas 2 - L.Metaal',cat:'locatie'}]),
-    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
-  seedIfNew('2026-05-20',{intent:'Bijeenkomst Passend Onderwijs Den Haag',notes:'The Hague Conference Centre New Babylon\nAnna van Buerenplein 48, 2595 DA Den Haag\n\nREISADVIES HEEN (OV)\nVertrek ~13:55 Schoonhoven-West\nBus 497 > Gouda Station (20 min)\nIC Gouda > Den Haag CS (17 min)\nLopen naar New Babylon: 5 min\nOV-chipkaart inchecken!\n\nTERUG: vertrek 18:00 Den Haag CS > thuis 19:00',wStart:'08:00',wEnd:'19:00',mood:'',
-    slots:mks([{tijden:['14:00'],label:'Vertrek - bus 497 Schoonhoven-West naar Gouda Station',cat:'reistijd'},{tijden:['14:15'],label:'Bus 497 onderweg naar Gouda (20 min)',cat:'reistijd'},{tijden:['14:30'],label:'IC Gouda naar Den Haag Centraal (17 min)',cat:'reistijd'},{tijden:['14:45'],label:'Aankomst Den Haag CS - lopen naar New Babylon',cat:'reistijd'},{tijden:['15:00'],label:'Buffer aankomst The Hague Conference Centre',cat:'reistijd'},{tijden:['16:00','16:15','16:30','16:45','17:00','17:15','17:30','17:45'],label:'Bijeenkomst Passend Onderwijs - The Hague Conference Centre New Babylon',cat:'extern'},{tijden:['18:00'],label:'Vertrek Den Haag CS - IC richting Gouda',cat:'reistijd'},{tijden:['18:15'],label:'IC Den Haag CS naar Gouda (17 min)',cat:'reistijd'},{tijden:['18:30'],label:'Bus 497 Gouda naar Schoonhoven-West (20 min)',cat:'reistijd'},{tijden:['18:45'],label:'Aankomst Schoonhoven',cat:'reistijd'}]),
-    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
-  seedIfNew('2026-05-21',{intent:'Overleg Audra, Mdo Femke, driehoeksgesprekken en kapper',notes:'CONFLICT 15:15-15:45: Vervolgoverleg Leerplein I.G. overlapt met Mdo Femke\nOrganisator: Lidy van Nijhuis\n\n16:00 Driehoeksgesprek Isa van Wijngaarden - 30 min.\n16:30 Kapper - Dam 7, Schoonhoven',wStart:'07:30',wEnd:'17:30',mood:'',
-    slots:mks([{tijden:['12:15','12:30','12:45','13:00'],label:'Overleg Audra - Vergaderruimte A66 (Teams)',cat:'online'},{tijden:['15:00','15:15','15:30','15:45'],label:'Mdo Femke - Vergaderruimte A66',cat:'locatie'},{tijden:['16:00','16:15'],label:'Driehoeksgesprekken klas 2 - Isa van Wijngaarden',cat:'locatie'},{tijden:['16:15','16:30'],label:'Fiets naar Kapper',cat:'reistijd'},{tijden:['16:30','16:45','17:00','17:15'],label:'Kapper - Dam 7, Schoonhoven',cat:'extern'}]),
-    tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]}});
+  // Seed data verwijderd om bestandsgrootte te beperken
 }
-
 /* CLOCK */
 let _clk;
 function startClock(){
@@ -949,6 +939,26 @@ document.addEventListener('DOMContentLoaded',()=>{
   let dp=null;
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const b=document.getElementById('installBanner');if(b)b.style.display='flex';});
   window.addEventListener('appinstalled',()=>{dp=null;const b=document.getElementById('installBanner');if(b)b.style.display='none';});
-  document.getElementById('installBtn')?.addEventListener('click',async()=>{if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;if(outcome==='accepted'){const b=document.getElementById('installBanner');if(b)b.style.display='none';}dp=null;});
-  document.getElementById('installClose')?.addEventListener('click',()=>{const b=document.getElementById('installBanner');if(b)b.style.display='none';});
+  const ib=document.getElementById('installBtn');
+  if(ib){
+    ib.addEventListener('click',async function(){
+      if(!dp)return;
+      dp.prompt();
+      var choice=await dp.userChoice;
+      if(choice.outcome==='accepted'){
+        var bn=document.getElementById('installBanner');
+        if(bn)bn.style.display='none';
+      }
+      dp=null;
+    });
+  }
+  const ic=document.getElementById('installClose');
+  if(ic){
+    ic.addEventListener('click',function(){
+      var bn=document.getElementById('installBanner');
+      if(bn)bn.style.display='none';
+    });
+  }
 });
+
+
