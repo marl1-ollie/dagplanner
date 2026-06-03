@@ -41,7 +41,7 @@ const SAVED_LOCS=[
   {label:'Vergaderruimte A66',                val:'Vergaderruimte A66, CSG Willem de Zwijger',  fiets:null,  cat:'locatie'},
   {label:'CSG Willem de Zwijger (algemeen)',  val:'CSG Willem de Zwijger, Schoonhoven',         fiets:true,  cat:'locatie'},
 ];
-const SYNC_URL='https:
+const SYNC_URL='https://script.google.com/macros/s/AKfycbyGn6SLIl5HSlIPEbXLz9nUwSdYRhfeDlkrLF4qH9h1LxnocBy05RQ2gd0u-2bCipPe/exec';
 let curDate=null,curMonth=4;
 const sk=d=>'dp26_'+d;
 const toISO=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -748,7 +748,7 @@ function exportICS(){
   const CL={locatie:'Overleg op locatie',extern:'Overleg extern',online:'Online overleg',admin:'Administratieve taak',telefoon:'Telefonisch contact',reistijd:'Reistijd'};
   const now=new Date().toISOString().replace(/[-:.]/g,'').slice(0,15)+'Z';
   const vtz=['BEGIN:VTIMEZONE','TZID:Europe/Amsterdam','BEGIN:STANDARD','TZNAME:CET','DTSTART:19701025T030000','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10','END:STANDARD','BEGIN:DAYLIGHT','TZNAME:CEST','DTSTART:19700329T020000','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3','END:DAYLIGHT','END:VTIMEZONE'].join('\r\n');
-  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-
+  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Dagplanner WZ//NL\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n'+vtz+'\r\n';
   events.forEach((ev,idx)=>{
     const d=curDate.replace(/-/g,''),ds=`${d}T${ev.start.replace(':','')}00`,de=`${d}T${ev.end.replace(':','')}00`;
     const cl=CL[ev.cat]||'',desc=cl?`Categorie: ${cl}${ev.location?'\\nLocatie: '+ev.location:''}`:ev.location||'';
@@ -773,7 +773,7 @@ function buildRR(b){const f=b.dataset.rrfreq;if(!f)return null;let freq=f,int=1;
 function mks(a){const s={};a.forEach(af=>af.tijden.forEach(t=>{s[t]={val:af.label,cat:af.cat,worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:''};}));return s;}
 function seedIfNew(d,data){if(!localStorage.getItem(sk(d)))localStorage.setItem(sk(d),JSON.stringify(data));}
 function seedAll(){}
- 
+
 let _clk;
 function startClock(){
   clearInterval(_clk);
