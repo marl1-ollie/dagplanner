@@ -140,7 +140,13 @@ function exportICS(){
   if(!events.length){alert('Geen afspraken gevonden.');return;}
   const CL={locatie:'Overleg op locatie',extern:'Overleg extern',online:'Online overleg',admin:'Administratieve taak',telefoon:'Telefonisch contact',reistijd:'Reistijd'};
   const now=new Date().toISOString().replace(/[-:.]/g,'').slice(0,15)+'Z';
-  const vtz=['BEGIN:VTIMEZONE','TZID:Europe/Amsterdam','BEGIN:STANDARD','TZNAME:CET','DTSTART:19701025T030000','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10','END:STANDARD','BEGIN:DAYLIGHT','TZNAME:CEST','DTSTART:19700329T020000','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3','END:DAYLIGHT','END:VTIMEZONE'].join('\r\n');
+  const vtz=[
+'BEGIN:VTIMEZONE',
+'TZID:Europe/Amsterdam',
+'BEGIN:STANDARD',
+'TZNAME:CET','DTSTART:19701025T030000','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10','END:STANDARD',
+'BEGIN:DAYLIGHT','TZNAME:CEST','DTSTART:19700329T020000','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3','END:DAYLIGHT',
+'END:VTIMEZONE'].join('\r\n');
   let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Dagplanner WZ//NL\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n'+vtz+'\r\n';
   events.forEach((ev,idx)=>{
     const d=curDate.replace(/-/g,''),ds=`${d}T${ev.start.replace(':','')}00`,de=`${d}T${ev.end.replace(':','')}00`;
@@ -162,7 +168,10 @@ function exportICS(){
 }
 function amins(t,n){const[h,m]=t.split(':').map(Number),tot=h*60+m+n;return`${String(Math.floor(tot/60)).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;}
 function esc(s){return s.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');}
-function buildRR(b){const f=b.dataset.rrfreq;if(!f)return null;let freq=f,int=1;if(f==='BIWEEKLY'){freq='WEEKLY';int=2;}let r=`FREQ=${freq}`;if(int>1)r+=`;INTERVAL=${int}`;if(b.dataset.rrendtype==='until'&&b.dataset.rruntil)r+=`;UNTIL=${b.dataset.rruntil.replace(/-/g,'')}T000000Z`;else r+=`;COUNT=${b.dataset.rrcount||10}`;return r;}
+function buildRR(b){
+  const f=b.dataset.rrfreq;
+  if(!f)return null;
+  let freq=f,int=1;if(f==='BIWEEKLY'){freq='WEEKLY';int=2;}let r=`FREQ=${freq}`;if(int>1)r+=`;INTERVAL=${int}`;if(b.dataset.rrendtype==='until'&&b.dataset.rruntil)r+=`;UNTIL=${b.dataset.rruntil.replace(/-/g,'')}T000000Z`;else r+=`;COUNT=${b.dataset.rrcount||10}`;return r;}
 function mks(a){const s={};a.forEach(af=>af.tijden.forEach(t=>{s[t]={val:af.label,cat:af.cat,worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:''};}));return s;}
 function seedIfNew(d,data){if(!localStorage.getItem(sk(d)))localStorage.setItem(sk(d),JSON.stringify(data));}
 function seedAll(){}
