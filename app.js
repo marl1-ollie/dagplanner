@@ -492,7 +492,8 @@ function guessCat(summary,location){
   }
   if(/admin|verslag|notulen|mail|rapport/i.test(s))return'admin';
   if(/reis|reizen|trein|bus|auto/i.test(s))return'reistijd';
-  return'locatie';
+ return'locatie';
+}
 function showTip(title,html,color){
   const old=document.getElementById('syncTip');if(old)old.remove();
   const tip=document.createElement('div');tip.id='syncTip';tip.className='sync-tip';
