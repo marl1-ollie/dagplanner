@@ -791,7 +791,7 @@ function saveDay(){
     mood:am?am.textContent:'',
     wStart:document.getElementById('wStart').value,
     wEnd:document.getElementById('wEnd').value,
-    banner,slots,tasks,comms
+    banner,slots,tasks,comms,appointments
   };
   const payload=JSON.stringify(obj);
   const hk=sk(curDate)+'_history';
@@ -918,6 +918,7 @@ function loadDay(dateStr){
 }
 function selectDay(dateStr){
   try{
+    clearTimeout(window._st);
     if(curDate&&curDate!==dateStr&&dateStr>curDate)rolloverTasks(curDate);
     if(curDate)saveDay();
     curDate=dateStr;
