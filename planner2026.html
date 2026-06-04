@@ -740,8 +740,8 @@ function rolloverTasks(fromDate){
   const today=isoToday();
   if(fromDate>today)return;
   // Niet doorschuiven als we terugnavigeren (toDate moet groter zijn dan fromDate)
-  const toDate=getNextWorkday(fromDate);
-  if(toDate>isoToday()&&fromDate<isoToday())return; // skip als we ver in toekomst gaan
+  const toDateCheck=getNextWorkday(fromDate);
+  if(toDateCheck>isoToday()&&fromDate<isoToday())return; // skip als we ver in toekomst gaan
   const raw=localStorage.getItem(sk(fromDate));
   if(!raw)return;
   let data;
@@ -1529,50 +1529,7 @@ function getNextWorkday(isoDate){
   return d.toISOString().slice(0,10);
 }
 
-function rolloverTasks(fromDate){
-  const raw=localStorage.getItem(sk(fromDate));
-  if(!raw)return;
-  let data;
-  try{data=JSON.parse(raw);}catch(e){return;}
-  const tasks=data.tasks;
-  if(!tasks)return;
-  const openTasks={hoog:[],midden:[],laag:[]};
-  let hasOpen=false;
-  ['hoog','midden','laag'].forEach(p=>{
-    (tasks[p]||[]).forEach(t=>{
-      if(!t.done&&t.text&&t.text.trim()){
-        openTasks[p].push({text:t.text,done:false,rolledOver:true});
-        hasOpen=true;
-      }
-    });
-  });
-  if(!hasOpen)return;
-  const toDate=getNextWorkday(fromDate);
-  const toRaw=localStorage.getItem(sk(toDate));
-  let toData;
-  try{toData=toRaw?JSON.parse(toRaw):{};}catch(e){toData={};}
-  if(!toData.tasks)toData.tasks={hoog:[],midden:[],laag:[]};
-  let added=0;
-  ['hoog','midden','laag'].forEach(p=>{
-    openTasks[p].forEach(newTask=>{
-      const alreadyThere=(toData.tasks[p]||[]).some(
-        ex=>ex.text.trim()===newTask.text.trim()
-      );
-      if(!alreadyThere){
-        if(!toData.tasks[p])toData.tasks[p]=[];
-        toData.tasks[p].push(newTask);
-        added++;
-      }
-    });
-  });
-  if(added>0){
-    localStorage.setItem(sk(toDate),JSON.stringify(toData));
-    showTip('Taken doorgeschoven',
-      added+' open '+(added===1?'taak':'taken')+
-      ' doorgeschoven naar de volgende werkdag. Ze staan in cursief bovenaan de lijst.',
-      '#008972');
-  }
-}
+
 
 document.addEventListener('DOMContentLoaded',()=>{
   buildGrid();
