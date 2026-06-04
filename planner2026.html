@@ -1190,49 +1190,6 @@ function clearUI(){
   document.querySelectorAll('.day-chip').forEach(c=>c.classList.remove('active'));
   renderAgenda();
 }
-function applyFixed(dateStr){
-  const d=pd(dateStr),dow=d.getDay(),mo=d.getMonth();
-  document.getElementById('hLoc').textContent=WL[dow]?'Locatie: '+WL[dow]:'';
-  const sf=SCHOOL_FREE[dateStr];
-  if(sf){
-    const bannerEl=document.getElementById('dayBannerInp');
-    if(bannerEl&&!bannerEl.value){bannerEl.value=sf.label;}
-    const typeMap={vakantie:'vakantie',feestdag:'vrij',roostervrij:'vrij'};
-    const chipType=typeMap[sf.type]||'vrij';
-    const chip=document.querySelector('.day-chip[data-type="'+chipType+'"]');
-    if(chip&&!document.querySelector('.day-chip.active'))chip.classList.add('active');
-    const page=document.querySelector('.page');
-    if(page)page.style.background=sf.color;
-  }else{
-    const page=document.querySelector('.page');
-    if(page)page.style.background='white';
-  }
-  if([1,2,4,5].includes(dow)){
-    applyS('10:30','Pauze (20 min.)','pauze');applyS('10:45','','pauze');
-    applyS('12:10','Pauze (30 min.)','pauze');applyS('12:15','','pauze');applyS('12:25','','pauze');applyS('12:30','','pauze');
-    applyS('14:00','Pauze (10 min.)','pauze');
-  }
-  if(dow===2){['09:15','09:30','09:45','10:00','10:15'].forEach(t=>applyS(t,'IZO - intern zorgoverleg','locatie'));}
-  if(dow===5){['11:00','11:15','11:30','11:45'].forEach(t=>applyS(t,'Weekplanning maken','admin'));}
-  if(dow===3){
-    applyS('07:30','Reistijd - Schoonhoven naar Utrecht Mariaplaats (BiOND, 45 min)','reistijd');
-    applyS('07:45','Reistijd - onderweg naar Utrecht','reistijd');
-    applyS('08:00','Reistijd - onderweg naar Utrecht','reistijd');
-    applyS('08:15','Aankomst BiOND - Mariaplaats Utrecht','reistijd');
-    applyS('17:00','Reistijd - Utrecht Mariaplaats naar Schoonhoven (45 min)','reistijd');
-    applyS('17:15','Reistijd - onderweg terug','reistijd');
-    applyS('17:30','Reistijd - onderweg terug','reistijd');
-    applyS('17:45','Aankomst Schoonhoven','reistijd');
-    const na=document.getElementById('notesArea');
-    if(!na.value)na.value='BiOND - Mariaplaats, Utrecht';
-  }
-}
-function applyS(time,val,cat){
-  const b=document.querySelector('.time-block[data-time="'+time+'"]');if(!b)return;
-  const ta=b.querySelector('.t-inp'),ct=b.querySelector('.cat-tag');
-  if(ta&&!ta.value.trim()){ta.value=val;ta.style.height='auto';ta.style.height=Math.max(22,ta.scrollHeight)+'px';}
-  if(!b.dataset.cat&&cat)setCatS(b,ct,cat);
-}
 function loadDay(dateStr){
   appointments=[];apptNextId=1;
   clearUI();
@@ -1289,8 +1246,20 @@ function shiftDay(n){
   try{
     const d=pd(curDate);
     d.setDate(d.getDate()+n);
+    // Weekenden overslaan - max 2 stappen extra
+    let safety=0;
+    while((d.getDay()===0||d.getDay()===6)&&safety<3){
+      d.setDate(d.getDate()+(n>=0?1:-1));
+      safety++;
+    }
     const iso=toISO(d.getFullYear(),d.getMonth(),d.getDate());
     if(MONTHS.includes(d.getMonth()))selectDay(iso);
+    else{
+      // Buiten plannerperiode - ga naar eerste/laatste dag van laatste/eerste maand
+      const lastMonth=MONTHS[n>=0?MONTHS.length-1:0];
+      const lastDay=n>=0?new Date(YEAR,lastMonth+1,0).getDate():1;
+      selectDay(toISO(YEAR,lastMonth,lastDay));
+    }
   }catch(e){console.error('shiftDay:',e);}
 }
 function gotoMonth(m){
@@ -1559,7 +1528,76 @@ let _clk;
 
 
 
-);
+document.addEventListener('DOMContentLoaded',()=>{
+  buildGrid();
+  document.getElementById('btnPrev').addEventListener('click',()=>shiftDay(-1));
+  document.getElementById('btnNext').addEventListener('click',()=>shiftDay(1));
+  document.querySelectorAll('.month-tab[data-month]').forEach(btn=>{
+    btn.addEventListener('click',()=>gotoMonth(parseInt(btn.dataset.month)));
+  });
+  document.getElementById('btnPrint').addEventListener('click',()=>window.print());
+  document.getElementById('btnOutlook').addEventListener('click',()=>exportICS());
+  document.getElementById('btnExport').addEventListener('click',()=>exportData());
+  document.getElementById('btnImport').addEventListener('click',()=>document.getElementById('importFile').click());
+  document.getElementById('btnIcs').addEventListener('click',()=>document.getElementById('icsFile').click());
+  document.getElementById('btnSync').addEventListener('click',()=>manualSync());
+  document.getElementById('btnClear').addEventListener('click',()=>clearCurDay());
+  document.getElementById('btnReset').addEventListener('click',()=>fullReset());
+  document.querySelectorAll('.day-chip').forEach(btn=>{
+    btn.addEventListener('click',()=>toggleChip(btn));
+  });
+  document.querySelectorAll('.mood-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>setMood(btn));
+  });
+  document.getElementById('intentInp').addEventListener('input',autoSave);
+  document.getElementById('notesArea').addEventListener('input',autoSave);
+  seedAll();
+  const today=isoToday();
+  const td=pd(today);
+  const todayMonth=td.getMonth();
+  const todayYear=td.getFullYear();
+  const inRange=todayYear===YEAR&&MONTHS.includes(todayMonth);
+  const start=inRange?today:toISO(YEAR,4,1);
+  curMonth=pd(start).getMonth();
+  document.querySelectorAll('.month-tab').forEach((t,i)=>{
+    t.classList.toggle('active',MONTHS[i]===curMonth);
+  });
+  selectDay(start);
+  startClock();
+  setTimeout(async()=>{
+    const count=await syncAllFromCloud();
+    if(count>0&&curDate){loadDay(curDate);updateHours();}
+    startAutoSync();
+  },1500);
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
+    });
+  }
+  let dp=null;
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const b=document.getElementById('installBanner');if(b)b.style.display='flex';});
+  window.addEventListener('appinstalled',()=>{dp=null;const b=document.getElementById('installBanner');if(b)b.style.display='none';});
+  const ib=document.getElementById('installBtn');
+  if(ib){
+    ib.addEventListener('click',async function(){
+      if(!dp)return;
+      dp.prompt();
+      var choice=await dp.userChoice;
+      if(choice.outcome==='accepted'){
+        var bn=document.getElementById('installBanner');
+        if(bn)bn.style.display='none';
+      }
+      dp=null;
+    });
+  }
+  const ic=document.getElementById('installClose');
+  if(ic){
+    ic.addEventListener('click',function(){
+      var bn=document.getElementById('installBanner');
+      if(bn)bn.style.display='none';
+    });
+  }
+});
 
 
 </script>
