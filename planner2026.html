@@ -1,21 +1,19 @@
 <!DOCTYPE html>
-<!-- v20260601 -->
+<!-- v20260603-agenda -->
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dagplanner 2026</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#006077">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Dagplanner">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+
 :root{--blue:#1C829E;--orange:#EB6334;--green:#008972;--yellow:#FDCE43;--darkblue:#006077;--grey:#F2F2F2;--text:#1a1a1a;--border:#dde3e7;--c-locatie:#1C829E;--c-extern:#EB6334;--c-online:#008972;--c-admin:#d4a000;--c-telefoon:#8B5CF6;--c-reistijd:#E07B39;--c-pauze:#8fa8b8;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-height:100vh;}
@@ -210,10 +208,85 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .intent-inp{font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--darkblue);font-weight:500;border:none;border-bottom:1px dashed var(--border);outline:none;text-align:center;background:transparent;width:170px;padding:1px 4px;}
 .intent-inp::placeholder{color:#c8d4db;font-style:italic;font-weight:400;}
 @media print{body{background:white;}.topnav,.hours-bar,.month-panel{display:none;}.page-wrap{padding:0;}.page{box-shadow:none;}.picker{display:none!important;}.cat-tag{display:inline-block!important;}.add-btn,.w-dot{display:none!important;}@page{size:A4 portrait;margin:0;}}
+
+/* === AGENDA VIEW === */
+.agenda-container { display: flex; gap: 0; position: relative; }
+.agenda-time-col { width: 48px; flex-shrink: 0; position: relative; }
+.agenda-time-lbl { position: absolute; font-size: 9px; font-weight: 700; color: #9aabb5; text-align: right; width: 40px; transform: translateY(-6px); user-select: none; right: 4px; }
+.agenda-grid { flex: 1; background: white; position: relative; border-left: 1px solid var(--border); }
+.agenda-hour-line { position: absolute; left: 0; right: 0; border-top: 1.5px solid #c8d4db; pointer-events: none; }
+.agenda-half-line { position: absolute; left: 0; right: 0; border-top: 1px dashed #edf0f2; pointer-events: none; }
+.agenda-cols-wrap { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; }
+.agenda-col { flex: 1; position: relative; border-right: 1px dashed #edf0f2; min-width: 0; }
+.agenda-col:last-child { border-right: none; }
+.appt { position: absolute; left: 3px; right: 3px; border-radius: 5px; padding: 4px 7px; cursor: grab; user-select: none; border-left: 3px solid transparent; box-shadow: 0 1px 4px rgba(0,0,0,.12); overflow: hidden; font-size: 11px; display: flex; flex-direction: column; gap: 1px; transition: box-shadow .15s; }
+.appt:hover { box-shadow: 0 3px 10px rgba(0,0,0,.18); z-index: 10; }
+.appt:active { cursor: grabbing; }
+.appt.dragging { opacity: .75; box-shadow: 0 8px 24px rgba(0,0,0,.2); transform: rotate(.5deg) scale(1.01); z-index: 100; }
+.appt-time { font-size: 8.5px; font-weight: 700; opacity: .7; }
+.appt-title { font-weight: 600; font-size: 11.5px; line-height: 1.3; }
+.appt-loc { font-size: 9px; opacity: .65; }
+.appt-btns { position: absolute; top: 3px; right: 3px; display: none; gap: 2px; }
+.appt:hover .appt-btns { display: flex; }
+.appt-btn { width: 16px; height: 16px; border-radius: 3px; background: rgba(255,255,255,.9); border: none; cursor: pointer; font-size: 8px; display: flex; align-items: center; justify-content: center; }
+.appt-btn:hover { background: white; }
+.resize-handle { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; cursor: ns-resize; background: rgba(0,0,0,.06); border-radius: 0 0 5px 5px; }
+.resize-handle:hover { background: rgba(0,0,0,.15); }
+.appt[data-cat="locatie"] { background: rgba(28,130,158,.12); border-left-color: #1C829E; }
+.appt[data-cat="extern"] { background: rgba(235,99,52,.11); border-left-color: #EB6334; }
+.appt[data-cat="online"] { background: rgba(0,137,114,.10); border-left-color: #008972; }
+.appt[data-cat="admin"] { background: rgba(212,160,0,.12); border-left-color: #d4a000; }
+.appt[data-cat="telefoon"] { background: rgba(139,92,246,.10); border-left-color: #8B5CF6; }
+.appt[data-cat="reistijd"] { background: rgba(224,123,57,.12); border-left-color: #E07B39; }
+.appt[data-cat="pauze"] { background: rgba(143,168,184,.15); border-left-color: #8fa8b8; }
+.drop-highlight { position: absolute; left: 2px; right: 2px; background: rgba(28,130,158,.12); border: 2px dashed var(--blue); border-radius: 4px; pointer-events: none; display: none; z-index: 50; }
+.now-line { position: absolute; left: 0; right: 0; z-index: 15; pointer-events: none; }
+.now-line::before { content: ''; display: block; height: 2px; background: var(--orange); }
+.now-dot { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+.slot-hover { position: absolute; left: 0; right: 0; background: rgba(28,130,158,.06); border-radius: 3px; pointer-events: none; display: none; }
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: 10px; padding: 20px; width: 340px; box-shadow: 0 12px 40px rgba(0,0,0,.2); max-height: 90vh; overflow-y: auto; }
+.modal h3 { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; color:var(--darkblue); margin-bottom:14px; }
+.modal label { font-size:10px; font-weight:700; color:#7a9aaa; letter-spacing:.5px; display:block; margin-bottom:3px; margin-top:10px; text-transform: uppercase; }
+.modal input, .modal select, .modal textarea { width:100%; font-family:'Barlow',sans-serif; font-size:13px; border:1.5px solid var(--border); border-radius:5px; padding:6px 10px; outline:none; color:var(--darkblue); background: white; }
+.modal input:focus, .modal select:focus, .modal textarea:focus { border-color:var(--blue); }
+.modal textarea { resize:none; min-height:50px; }
+.modal .time-row { display:flex; gap:8px; }
+.modal .time-row > div { flex:1; }
+.modal-btns { display:flex; gap:6px; margin-top:16px; flex-wrap: wrap; }
+.modal-btns button { flex:1; min-width: 70px; font-family:'Barlow',sans-serif; font-size:11px; font-weight:700; padding:7px; border-radius:5px; cursor:pointer; border:none; }
+.mbtn-save { background:var(--blue); color:white; }
+.mbtn-delete { background:#fff0ee; color:var(--orange); border:1.5px solid var(--orange) !important; }
+.mbtn-forward { background:#e8f5e9; color:var(--green); border:1.5px solid var(--green) !important; }
+.mbtn-cancel { background:var(--grey); color:#666; }
+.forward-panel { background:#f0faf5; border:1.5px solid var(--green); border-radius:6px; padding:10px 12px; margin-top:10px; display:none; }
+.forward-panel.open { display:block; }
+/* Agenda toolbar */
+.agenda-toolbar { background: rgba(0,0,0,.2); padding: 4px 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.acat-btn { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,.3); background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all .15s; }
+.acat-btn .dot { width: 7px; height: 7px; border-radius: 50%; }
+.acat-btn.active { color: white; border-color: transparent; }
+.acat-btn[data-cat="locatie"].active { background: #1C829E; }
+.acat-btn[data-cat="extern"].active { background: #EB6334; }
+.acat-btn[data-cat="online"].active { background: #008972; }
+.acat-btn[data-cat="admin"].active { background: #d4a000; color: #333; }
+.acat-btn[data-cat="telefoon"].active { background: #8B5CF6; }
+.acat-btn[data-cat="reistijd"].active { background: #E07B39; }
+.acat-btn[data-cat="pauze"].active { background: #8fa8b8; }
+.agenda-hint { font-size: 9px; color: #9aabb5; margin-left: auto; }
+@media print { .topnav,.hours-bar,.month-panel,.agenda-toolbar { display:none; } .page-wrap { padding:0; } .page { box-shadow:none; } .appt-btns,.resize-handle { display:none!important; } }
+
+
+/* Doorgeschoven taken */
+.t-txt.rolled { color: #9aabb5; font-style: italic; }
+.t-txt.rolled::before { content: '↩ '; font-size: 9px; }
+.task-item.rolled { background: #f8fafc; border-left: 2px solid #c8d4db; }
+
 </style>
 </head>
 <body>
-
 <div class="topnav">
   <div class="topnav-title">Dagplanner</div>
   <div class="month-tabs">
@@ -296,8 +369,8 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
   </div>
   <div class="body">
     <div class="sched">
-      <div class="col-hdr"><span>Dagindeling</span><span class="col-hint">Klik tijdstip voor type</span></div>
-      <div class="time-grid" id="tGrid"></div>
+      <div class="col-hdr"><span>Dagindeling</span><span class="col-hint">Klik om toe te voegen &bull; Sleep om te verplaatsen</span></div><div class="agenda-toolbar"><span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.6);margin-right:4px;">TYPE:</span><button class="acat-btn active" data-cat="locatie" onclick="selectAcat(this)"><span class="dot" style="background:#1C829E"></span>Locatie</button><button class="acat-btn" data-cat="extern" onclick="selectAcat(this)"><span class="dot" style="background:#EB6334"></span>Extern</button><button class="acat-btn" data-cat="online" onclick="selectAcat(this)"><span class="dot" style="background:#008972"></span>Online</button><button class="acat-btn" data-cat="admin" onclick="selectAcat(this)"><span class="dot" style="background:#d4a000"></span>Admin</button><button class="acat-btn" data-cat="telefoon" onclick="selectAcat(this)"><span class="dot" style="background:#8B5CF6"></span>Tel.</button><button class="acat-btn" data-cat="reistijd" onclick="selectAcat(this)"><span class="dot" style="background:#E07B39"></span>Reis</button><button class="acat-btn" data-cat="pauze" onclick="selectAcat(this)"><span class="dot" style="background:#8fa8b8"></span>Pauze</button></div>
+      <div style="display:flex;gap:0;"><div class="agenda-time-col" id="agendaTimeCol" style="position:relative;flex-shrink:0;width:48px;"></div><div style="flex:1;position:relative;" id="agendaWrap"><div id="tGrid" style="position:relative;"></div></div></div>
     </div>
     <div class="right">
       <div class="task-sec prio-h"><div class="task-hdr"><div class="t-badge">!</div>Hoge prioriteit</div><div class="task-list" id="tl-hoog"></div><button class="add-btn add-task-btn" onclick="addTask('hoog')">+ Taak</button></div>
@@ -326,8 +399,22 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
   <button id="installBtn" style="font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;background:var(--orange);color:white;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;">Installeren</button>
   <button id="installClose" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;padding:0 4px;">&#10005;</button>
 </div>
-
+<div class="modal-overlay" id="apptModalOverlay">
+<div class="modal"><h3 id="amTitle">Afspraak</h3>
+<label>Omschrijving</label><input type="text" id="amApptTitle" placeholder="Bijv. Overleg met team...">
+<label>Locatie</label><input type="text" id="amLoc" placeholder="Bijv. Vergaderruimte A66">
+<div class="time-row"><div><label>Van</label><input type="time" id="amStart" value="09:00"></div><div><label>Tot</label><input type="time" id="amEnd" value="10:00"></div></div>
+<label>Type</label><select id="amCat"><option value="locatie">Op locatie</option><option value="extern">Extern</option><option value="online">Online</option><option value="admin">Administratief</option><option value="telefoon">Telefonisch</option><option value="reistijd">Reistijd</option><option value="pauze">Pauze</option></select>
+<label>Notitie</label><textarea id="amNote" placeholder="Voorbereiding, link, agendapunten..."></textarea>
+<div class="forward-panel" id="amForwardPanel"><label>E-mail collega</label><input type="email" id="amColleague" placeholder="collega@school.nl"></div>
+<div class="modal-btns">
+<button class="mbtn-save" onclick="saveAppt()">Opslaan</button>
+<button class="mbtn-forward" onclick="toggleForwardPanel()">&#8594; Collega</button>
+<button class="mbtn-delete" id="amBtnDelete" onclick="deleteAppt()" style="display:none">Verwijder</button>
+<button class="mbtn-cancel" onclick="closeApptModal()">Annuleer</button>
+</div></div></div>
 <script>
+
 
 const YEAR=2026,MONTHS=[4,5,6];
 const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
@@ -372,7 +459,7 @@ const SAVED_LOCS=[
   {label:'Vergaderruimte A66',                val:'Vergaderruimte A66, CSG Willem de Zwijger',  fiets:null,  cat:'locatie'},
   {label:'CSG Willem de Zwijger (algemeen)',  val:'CSG Willem de Zwijger, Schoonhoven',         fiets:true,  cat:'locatie'},
 ];
-const SYNC_URL='https://script.google.com/macros/s/AKfycbyAe8eRMMLFVSo6ZdkWp_7AEVHDgkNE-PQD-0YnZcpMusdlC-eKMnKHy9clJmXi7RHh/exec';
+const SYNC_URL='https://script.google.com/macros/s/AKfycbyGn6SLIl5HSlIPEbXLz9nUwSdYRhfeDlkrLF4qH9h1LxnocBy05RQ2gd0u-2bCipPe/exec';
 let curDate=null,curMonth=4;
 const sk=d=>'dp26_'+d;
 const toISO=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -380,28 +467,482 @@ const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
 const isoToday=()=>{const t=new Date();return`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;};
 const t2m=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m;};
 const m2s=m=>{if(m<=0)return'0u';const h=Math.floor(m/60),r=m%60;return r?`${h}u ${r}m`:`${h}u`;};
+
+
+
+const YEAR=2026,MONTHS=[4,5,6];
+const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const MONTHS_NL=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const CATS=[
+  {key:'locatie',label:'Overleg op locatie',short:'Locatie',color:'#1C829E'},
+  {key:'extern', label:'Overleg extern',    short:'Extern', color:'#EB6334'},
+  {key:'online', label:'Online overleg',    short:'Online', color:'#008972'},
+  {key:'admin',  label:'Administratieve taak',short:'Admin',color:'#d4a000'},
+  {key:'telefoon',label:'Telefonisch contact',short:'Tel.', color:'#8B5CF6'},
+  {key:'reistijd',label:'Reistijd',           short:'Reis', color:'#E07B39'},
+  {key:'pauze',  label:'Pauze',               short:'Pauze',color:'#8fa8b8'},
+];
+const WL={1:'Schoonhoven (WZ)',2:'Schoonhoven (WZ)',3:'Utrecht - BiOND',4:'Schoonhoven (WZ)',5:'Schoonhoven (WZ, vm)'};
+const SCHOOL_FREE = {
+  '2026-05-25': {label:'Pinksterdag', color:'#e8f5e9', type:'feestdag'},
+  '2026-07-13': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
+  '2026-07-14': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
+  '2026-07-15': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
+  '2026-07-16': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
+  '2026-07-20': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-21': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-22': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-23': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-24': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-25': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-26': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-27': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-28': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-29': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-30': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+  '2026-07-31': {label:'Zomervakantie', color:'#e3f2fd', type:'vakantie'},
+};
+const SAVED_LOCS=[
+  {label:'Kapper - Dam 7, Schoonhoven',      val:'Dam 7, 2871 CS Schoonhoven',               fiets:true,  cat:'extern'},
+  {label:'Thuis - Jan Lutmastraat 13',        val:'Jan Lutmastraat 13, Schoonhoven',           fiets:true,  cat:'extern'},
+  {label:'BiOND - Mariaplaats Utrecht',       val:'Mariaplaats, Utrecht',                      fiets:false, cat:'extern'},
+  {label:'The Hague Conf. Centre, Den Haag',  val:'Anna van Buerenplein 48, Den Haag',         fiets:false, cat:'extern'},
+  {label:'Hondendagopvang Matties - Lopik',   val:'Lekdijk West 44, 3411 MX Lopik',            fiets:false, cat:'extern'},
+  {label:'Werkkamer Marleen',                 val:'Werkkamer Marleen, CSG Willem de Zwijger',   fiets:null,  cat:'locatie'},
+  {label:'Werkkamer Andre',                   val:'Werkkamer Andre, CSG Willem de Zwijger',     fiets:null,  cat:'locatie'},
+  {label:'Vergaderruimte A66',                val:'Vergaderruimte A66, CSG Willem de Zwijger',  fiets:null,  cat:'locatie'},
+  {label:'CSG Willem de Zwijger (algemeen)',  val:'CSG Willem de Zwijger, Schoonhoven',         fiets:true,  cat:'locatie'},
+];
+const SYNC_URL='https://script.google.com/macros/s/AKfycbyGn6SLIl5HSlIPEbXLz9nUwSdYRhfeDlkrLF4qH9h1LxnocBy05RQ2gd0u-2bCipPe/exec';
+let curDate=null,curMonth=4;
+const sk=d=>'dp26_'+d;
+const toISO=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const isoToday=()=>{const t=new Date();return`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;};
+const t2m=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m;};
+const m2s=m=>{if(m<=0)return'0u';const h=Math.floor(m/60),r=m%60;return r?`${h}u ${r}m`:`${h}u`;};
+
+/* === AGENDA CONFIG === */
+const AG_START = 7, AG_END = 22;
+const AG_MINS = (AG_END - AG_START) * 60;
+const PX_PER_MIN = 2;
+const AG_HEIGHT = AG_MINS * PX_PER_MIN;
+let appointments = [];
+let apptNextId = 1;
+let activeCat = 'locatie';
+let dragState = null;
+let resizeState = null;
+let editingApptId = null;
+
+function t2mins(t){ const[h,m]=t.split(':').map(Number); return h*60+m; }
+function mins2t(m){ const h=Math.floor(m/60),r=m%60; return String(h).padStart(2,'0')+':'+String(r).padStart(2,'0'); }
+function snapQ(m){ return Math.round(m/15)*15; }
+function yToMins(y){ return AG_START*60+(y/PX_PER_MIN); }
+function minsToY(m){ return (m-AG_START*60)*PX_PER_MIN; }
+
+function assignCols(appts){
+  const sorted=[...appts].sort((a,b)=>t2mins(a.start)-t2mins(b.start));
+  const cols=[];
+  sorted.forEach(a=>{
+    const as=t2mins(a.start),ae=t2mins(a.end);
+    let placed=false;
+    for(let c=0;c<cols.length;c++){
+      const last=cols[c][cols[c].length-1];
+      if(t2mins(last.end)<=as){cols[c].push(a);a._col=c;placed=true;break;}
+    }
+    if(!placed){a._col=cols.length;cols.push([a]);}
+  });
+  return Math.max(1,cols.length);
+}
+
 function buildGrid(){
-  const g=document.getElementById('tGrid');g.innerHTML='';
-  for(let h=7;h<=21;h++){
-    for(let m=(h===7?30:0);m<=45;m+=15){
-      const lbl=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-      const row=document.createElement('div');
-      row.className='time-block'+(m===0?' hour-start':'');
-      row.dataset.time=lbl;
-      const tl=document.createElement('span');tl.className='t-lbl';tl.textContent=lbl;tl.title='Klik voor type';
-      tl.onclick=e=>{e.stopPropagation();openPicker(row);};
-      const ct=document.createElement('span');ct.className='cat-tag';
-      ct.onclick=e=>{e.stopPropagation();openPicker(row);};
-      const wd=document.createElement('div');wd.className='w-dot';wd.title='Markeer als gewerkt';
-      wd.onclick=e=>{e.stopPropagation();row.classList.toggle('worked');autoSave();updateHours();};
-      const ta=document.createElement('textarea');ta.className='t-inp';ta.rows=1;
-      ta.id='sl-'+lbl.replace(':','');ta.dataset.time=lbl;
-      ta.oninput=function(){this.style.height='auto';this.style.height=Math.max(22,this.scrollHeight)+'px';autoSave();};
-      row.append(tl,ct,wd,ta,makePicker(row,ct));
-      g.appendChild(row);
+  const grid=document.getElementById('tGrid');
+  const wrap=document.getElementById('agendaWrap');
+  if(!grid||!wrap)return;
+  grid.innerHTML='';
+  wrap.style.height=AG_HEIGHT+'px';
+
+  // Time labels
+  const timeCol=document.getElementById('agendaTimeCol');
+  if(timeCol){
+    timeCol.innerHTML='';
+    timeCol.style.height=AG_HEIGHT+'px';
+    for(let h=AG_START;h<=AG_END;h++){
+      const y=(h-AG_START)*60*PX_PER_MIN;
+      const lbl=document.createElement('div');
+      lbl.className='agenda-time-lbl';
+      lbl.style.top=y+'px';
+      lbl.textContent=String(h).padStart(2,'0')+':00';
+      timeCol.appendChild(lbl);
     }
   }
+
+  // Hour lines
+  for(let h=AG_START;h<=AG_END;h++){
+    const y=(h-AG_START)*60*PX_PER_MIN;
+    const line=document.createElement('div');
+    line.className='agenda-hour-line';
+    line.style.top=y+'px';
+    grid.appendChild(line);
+    if(h<AG_END){
+      const half=document.createElement('div');
+      half.className='agenda-half-line';
+      half.style.top=(y+30*PX_PER_MIN)+'px';
+      grid.appendChild(half);
+    }
+  }
+
+  // Click to add on grid background
+  grid.style.position='relative';
+  grid.style.minHeight=AG_HEIGHT+'px';
+  grid.addEventListener('mousedown',e=>{
+    if(e.target===grid||e.target.classList.contains('agenda-hour-line')||e.target.classList.contains('agenda-half-line')){
+      const rect=grid.getBoundingClientRect();
+      const y=e.clientY-rect.top;
+      const snapped=snapQ(yToMins(y));
+      openApptModal(null,mins2t(snapped));
+    }
+  });
+
+  updateNowLine();
+  setInterval(updateNowLine,60000);
+  renderAgenda();
 }
+
+function updateNowLine(){
+  const grid=document.getElementById('tGrid');
+  if(!grid)return;
+  const old=grid.querySelector('.now-line');
+  if(old)old.remove();
+  const now=new Date();
+  const mins=now.getHours()*60+now.getMinutes();
+  if(mins<AG_START*60||mins>AG_END*60)return;
+  const line=document.createElement('div');
+  line.className='now-line';
+  line.style.top=minsToY(mins)+'px';
+  line.innerHTML='<div class="now-dot"></div>';
+  grid.appendChild(line);
+}
+
+function renderAgenda(){
+  const grid=document.getElementById('tGrid');
+  if(!grid)return;
+  // Remove old cols wrap
+  const old=grid.querySelector('.agenda-cols-wrap');
+  if(old)old.remove();
+  const dh=grid.querySelector('.drop-highlight');
+
+  const numCols=assignCols(appointments);
+  const wrap=document.createElement('div');
+  wrap.className='agenda-cols-wrap';
+
+  for(let c=0;c<numCols;c++){
+    const col=document.createElement('div');
+    col.className='agenda-col';
+    col.dataset.col=c;
+
+    // Slot hover hints
+    for(let m=AG_START*60;m<AG_END*60;m+=15){
+      const slot=document.createElement('div');
+      slot.style.cssText='position:absolute;left:0;right:0;height:'+(15*PX_PER_MIN)+'px;top:'+minsToY(m)+'px;cursor:pointer;';
+      slot.addEventListener('mouseenter',()=>{slot.style.background='rgba(28,130,158,.04)';});
+      slot.addEventListener('mouseleave',()=>{slot.style.background='';});
+      slot.addEventListener('click',()=>openApptModal(null,mins2t(m)));
+      col.appendChild(slot);
+    }
+
+    wrap.appendChild(col);
+  }
+
+  // Add drop highlight
+  const dhl=document.createElement('div');
+  dhl.className='drop-highlight';
+  dhl.id='dropHL';
+  wrap.appendChild(dhl);
+
+  grid.insertBefore(wrap,grid.querySelector('.now-line'));
+
+  // Render appointments into columns
+  appointments.forEach(a=>{
+    const sm=t2mins(a.start),em=t2mins(a.end);
+    const y=minsToY(sm);
+    const h=Math.max(22,(em-sm)*PX_PER_MIN);
+    const col=wrap.children[a._col||0];
+    if(!col)return;
+
+    const el=document.createElement('div');
+    el.className='appt';
+    el.dataset.id=a.id;
+    el.dataset.cat=a.cat||'locatie';
+    el.style.top=y+'px';
+    el.style.height=h+'px';
+    el.innerHTML=
+      '<div class="appt-time">'+a.start+' – '+a.end+'</div>'+
+      '<div class="appt-title">'+a.title+'</div>'+
+      (a.loc?'<div class="appt-loc">'+a.loc+'</div>':'')+
+      '<div class="appt-btns">'+
+        '<button class="appt-btn" title="Bewerken" onclick="openApptModal('+a.id+');event.stopPropagation()">✏</button>'+
+        '<button class="appt-btn" title="Collega" onclick="forwardAppt('+a.id+');event.stopPropagation()">→</button>'+
+      '</div>'+
+      '<div class="resize-handle" data-id="'+a.id+'"></div>';
+
+    el.addEventListener('mousedown',onApptDrag);
+    el.querySelector('.resize-handle').addEventListener('mousedown',onApptResize);
+    el.addEventListener('dblclick',e=>{e.stopPropagation();openApptModal(a.id);});
+    col.appendChild(el);
+  });
+}
+
+function onApptDrag(e){
+  if(e.target.classList.contains('resize-handle')||e.target.classList.contains('appt-btn'))return;
+  e.preventDefault();
+  const el=e.currentTarget;
+  const id=parseInt(el.dataset.id);
+  const a=appointments.find(x=>x.id===id);
+  if(!a)return;
+  const rect=el.getBoundingClientRect();
+  dragState={id,a,offsetY:e.clientY-rect.top,dur:t2mins(a.end)-t2mins(a.start),newStart:null};
+  el.classList.add('dragging');
+  document.addEventListener('mousemove',onDragMove);
+  document.addEventListener('mouseup',onDragUp);
+}
+function onDragMove(e){
+  if(!dragState)return;
+  const grid=document.getElementById('tGrid');
+  const rect=grid.getBoundingClientRect();
+  const y=e.clientY-rect.top-dragState.offsetY;
+  const snapped=snapQ(yToMins(Math.max(0,y)));
+  const sm=Math.max(AG_START*60,Math.min(snapped,AG_END*60-dragState.dur));
+  const em=sm+dragState.dur;
+  dragState.newStart=mins2t(sm);dragState.newEnd=mins2t(em);
+  const dh=document.getElementById('dropHL');
+  if(dh){dh.style.display='block';dh.style.top=minsToY(sm)+'px';dh.style.height=(dragState.dur*PX_PER_MIN)+'px';}
+}
+function onDragUp(){
+  if(!dragState)return;
+  const dh=document.getElementById('dropHL');
+  if(dh)dh.style.display='none';
+  if(dragState.newStart){
+    const a=appointments.find(x=>x.id===dragState.id);
+    if(a){a.start=dragState.newStart;a.end=dragState.newEnd;}
+    autoSave();
+  }
+  document.querySelectorAll('.appt.dragging').forEach(el=>el.classList.remove('dragging'));
+  dragState=null;
+  document.removeEventListener('mousemove',onDragMove);
+  document.removeEventListener('mouseup',onDragUp);
+  renderAgenda();
+}
+
+function onApptResize(e){
+  e.preventDefault();e.stopPropagation();
+  const id=parseInt(e.currentTarget.dataset.id);
+  const a=appointments.find(x=>x.id===id);
+  if(!a)return;
+  resizeState={id,a,newEnd:null};
+  document.addEventListener('mousemove',onResizeMove);
+  document.addEventListener('mouseup',onResizeUp);
+}
+function onResizeMove(e){
+  if(!resizeState)return;
+  const grid=document.getElementById('tGrid');
+  const rect=grid.getBoundingClientRect();
+  const y=e.clientY-rect.top;
+  const snapped=snapQ(yToMins(y));
+  const sm=t2mins(resizeState.a.start);
+  const em=Math.max(sm+15,Math.min(snapped,AG_END*60));
+  resizeState.newEnd=mins2t(em);
+  const el=document.querySelector('.appt[data-id="'+resizeState.id+'"]');
+  if(el){
+    el.style.height=Math.max(22,(em-sm)*PX_PER_MIN)+'px';
+    el.querySelector('.appt-time').textContent=resizeState.a.start+' – '+resizeState.newEnd;
+  }
+}
+function onResizeUp(){
+  if(!resizeState)return;
+  if(resizeState.newEnd){
+    const a=appointments.find(x=>x.id===resizeState.id);
+    if(a)a.end=resizeState.newEnd;
+    autoSave();
+  }
+  resizeState=null;
+  document.removeEventListener('mousemove',onResizeMove);
+  document.removeEventListener('mouseup',onResizeUp);
+  renderAgenda();
+}
+
+function openApptModal(id,defaultStart){
+  editingApptId=id||null;
+  const a=id?appointments.find(x=>x.id===id):null;
+  document.getElementById('amTitle').textContent=a?'Afspraak bewerken':'Nieuwe afspraak';
+  document.getElementById('amApptTitle').value=a?a.title:'';
+  document.getElementById('amLoc').value=a?a.loc:'';
+  document.getElementById('amStart').value=a?a.start:(defaultStart||'09:00');
+  document.getElementById('amEnd').value=a?a.end:mins2t(t2mins(defaultStart||'09:00')+60);
+  document.getElementById('amCat').value=a?a.cat:activeCat;
+  document.getElementById('amNote').value=a?a.note:'';
+  document.getElementById('amBtnDelete').style.display=a?'':'none';
+  document.getElementById('amForwardPanel').classList.remove('open');
+  document.getElementById('amColleague').value='';
+  document.getElementById('apptModalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('amApptTitle').focus(),50);
+}
+function closeApptModal(){document.getElementById('apptModalOverlay').classList.remove('open');editingApptId=null;}
+function saveAppt(){
+  const title=document.getElementById('amApptTitle').value.trim();
+  if(!title){document.getElementById('amApptTitle').focus();return;}
+  const data={title,loc:document.getElementById('amLoc').value.trim(),start:document.getElementById('amStart').value,end:document.getElementById('amEnd').value,cat:document.getElementById('amCat').value,note:document.getElementById('amNote').value.trim()};
+  if(editingApptId){const a=appointments.find(x=>x.id===editingApptId);if(a)Object.assign(a,data);}
+  else{appointments.push({id:apptNextId++,...data});}
+  closeApptModal();autoSave();renderAgenda();
+}
+function deleteAppt(){
+  if(!editingApptId)return;
+  if(confirm('Afspraak verwijderen?')){appointments=appointments.filter(a=>a.id!==editingApptId);closeApptModal();autoSave();renderAgenda();}
+}
+function toggleForwardPanel(){document.getElementById('amForwardPanel').classList.toggle('open');}
+function forwardAppt(id){openApptModal(id);document.getElementById('amForwardPanel').classList.add('open');}
+function selectAcat(btn){
+  document.querySelectorAll('.acat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');activeCat=btn.dataset.cat;
+}
+
+function startClock(){
+  clearInterval(_clk);
+  _clk=setInterval(()=>{
+    if(curDate===isoToday()){
+      const w=workedMins(),el=document.getElementById('hToday');
+      if(w>0){el.textContent=m2s(w);el.style.color='';}
+      else{const s=document.getElementById('wStart').value;if(s){const n=new Date(),nm=n.getHours()*60+n.getMinutes(),diff=nm-t2m(s);if(diff>0){el.textContent=m2s(diff);el.style.color='#9aabb5';}}}
+    }
+  },60000);
+}
+
+/* === TAKEN DOORSCHUIVEN === */
+function getNextWorkday(isoDate){
+  const d=new Date(isoDate+'T00:00:00');
+  do{d.setDate(d.getDate()+1);}while(d.getDay()===0||d.getDay()===6);
+  return d.toISOString().slice(0,10);
+}
+
+function rolloverTasks(fromDate){
+  const raw=localStorage.getItem(sk(fromDate));
+  if(!raw)return;
+  let data;
+  try{data=JSON.parse(raw);}catch(e){return;}
+  const tasks=data.tasks;
+  if(!tasks)return;
+  const openTasks={hoog:[],midden:[],laag:[]};
+  let hasOpen=false;
+  ['hoog','midden','laag'].forEach(p=>{
+    (tasks[p]||[]).forEach(t=>{
+      if(!t.done&&t.text&&t.text.trim()){
+        openTasks[p].push({text:t.text,done:false,rolledOver:true});
+        hasOpen=true;
+      }
+    });
+  });
+  if(!hasOpen)return;
+  const toDate=getNextWorkday(fromDate);
+  const toRaw=localStorage.getItem(sk(toDate));
+  let toData;
+  try{toData=toRaw?JSON.parse(toRaw):{};}catch(e){toData={};}
+  if(!toData.tasks)toData.tasks={hoog:[],midden:[],laag:[]};
+  let added=0;
+  ['hoog','midden','laag'].forEach(p=>{
+    openTasks[p].forEach(newTask=>{
+      const alreadyThere=(toData.tasks[p]||[]).some(
+        ex=>ex.text.trim()===newTask.text.trim()
+      );
+      if(!alreadyThere){
+        if(!toData.tasks[p])toData.tasks[p]=[];
+        toData.tasks[p].push(newTask);
+        added++;
+      }
+    });
+  });
+  if(added>0){
+    localStorage.setItem(sk(toDate),JSON.stringify(toData));
+    showTip('Taken doorgeschoven',
+      added+' open '+(added===1?'taak':'taken')+
+      ' doorgeschoven naar de volgende werkdag. Ze staan in cursief bovenaan de lijst.',
+      '#008972');
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  buildGrid();
+  document.getElementById('btnPrev').addEventListener('click',()=>shiftDay(-1));
+  document.getElementById('btnNext').addEventListener('click',()=>shiftDay(1));
+  document.querySelectorAll('.month-tab[data-month]').forEach(btn=>{
+    btn.addEventListener('click',()=>gotoMonth(parseInt(btn.dataset.month)));
+  });
+  document.getElementById('btnPrint').addEventListener('click',()=>window.print());
+  document.getElementById('btnOutlook').addEventListener('click',()=>exportICS());
+  document.getElementById('btnExport').addEventListener('click',()=>exportData());
+  document.getElementById('btnImport').addEventListener('click',()=>document.getElementById('importFile').click());
+  document.getElementById('btnIcs').addEventListener('click',()=>document.getElementById('icsFile').click());
+  document.getElementById('btnSync').addEventListener('click',()=>manualSync());
+  document.getElementById('btnClear').addEventListener('click',()=>clearCurDay());
+  document.getElementById('btnReset').addEventListener('click',()=>fullReset());
+  document.querySelectorAll('.day-chip').forEach(btn=>{
+    btn.addEventListener('click',()=>toggleChip(btn));
+  });
+  document.querySelectorAll('.mood-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>setMood(btn));
+  });
+  document.getElementById('intentInp').addEventListener('input',autoSave);
+  document.getElementById('notesArea').addEventListener('input',autoSave);
+  seedAll();
+  const today=isoToday();
+  const td=pd(today);
+  const todayMonth=td.getMonth();
+  const todayYear=td.getFullYear();
+  const inRange=todayYear===YEAR&&MONTHS.includes(todayMonth);
+  const start=inRange?today:toISO(YEAR,4,1);
+  curMonth=pd(start).getMonth();
+  document.querySelectorAll('.month-tab').forEach((t,i)=>{
+    t.classList.toggle('active',MONTHS[i]===curMonth);
+  });
+  selectDay(start);
+  startClock();
+  setTimeout(async()=>{
+    const count=await syncAllFromCloud();
+    if(count>0&&curDate){loadDay(curDate);updateHours();}
+    startAutoSync();
+  },1500);
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
+    });
+  }
+  let dp=null;
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const b=document.getElementById('installBanner');if(b)b.style.display='flex';});
+  window.addEventListener('appinstalled',()=>{dp=null;const b=document.getElementById('installBanner');if(b)b.style.display='none';});
+  const ib=document.getElementById('installBtn');
+  if(ib){
+    ib.addEventListener('click',async function(){
+      if(!dp)return;
+      dp.prompt();
+      var choice=await dp.userChoice;
+      if(choice.outcome==='accepted'){
+        var bn=document.getElementById('installBanner');
+        if(bn)bn.style.display='none';
+      }
+      dp=null;
+    });
+  }
+  const ic=document.getElementById('installClose');
+  if(ic){
+    ic.addEventListener('click',function(){
+      var bn=document.getElementById('installBanner');
+      if(bn)bn.style.display='none';
+    });
+  }
+});
+
+
+
 function makePicker(row,ct){
   const p=document.createElement('div');p.className='picker';
   p.onclick=e=>e.stopPropagation();
@@ -551,12 +1092,16 @@ function rrBadge(row,freq){
   let b=row.querySelector('.rr-badge');if(b)b.remove();
   if(freq){b=document.createElement('span');b.className='rr-badge';const L={DAILY:'Dagelijks',WEEKLY:'Wekelijks',BIWEEKLY:'2-wekelijks',MONTHLY:'Maandelijks'};b.textContent='herhaal: '+(L[freq]||freq);row.appendChild(b);}
 }
-function addTask(prio,text='',done=false){
+function addTask(prio,text='',done=false,rolledOver=false){
   const list=document.getElementById('tl-'+prio);
-  const item=document.createElement('div');item.className='task-item';
+  const item=document.createElement('div');item.className='task-item'+(rolledOver?' rolled':'');
   const cb=document.createElement('input');cb.type='checkbox';cb.className='t-cb';cb.checked=done;
-  const ta=document.createElement('textarea');ta.className='t-txt'+(done?' done':'');ta.rows=1;ta.value=text;ta.placeholder='Taak...';
-  cb.onchange=()=>{ta.classList.toggle('done',cb.checked);autoSave();};
+  const ta=document.createElement('textarea');ta.className='t-txt'+(done?' done':'')+(rolledOver?' rolled':'');ta.rows=1;ta.value=text;ta.placeholder='Taak...';
+  cb.onchange=()=>{
+    ta.classList.toggle('done',cb.checked);
+    if(cb.checked){ta.classList.remove('rolled');item.classList.remove('rolled');}
+    autoSave();
+  };
   ta.oninput=function(){this.style.height='auto';this.style.height=Math.max(18,this.scrollHeight)+'px';autoSave();};
   ta.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addTask(prio);setTimeout(()=>{const its=list.querySelectorAll('.t-txt');its[its.length-1].focus();},50);}};
   item.append(cb,ta);list.appendChild(item);
@@ -683,119 +1228,47 @@ async function manualSync(){
   if(count>0){if(curDate){loadDay(curDate);updateHours();}showTip('Gesynchroniseerd',`${count} dag(en) opgehaald.`,'#008972');}
   else showTip('Niets gevonden','Geen nieuwe data of geen verbinding.','#EB6334');
 }
+function autoSave(){clearTimeout(window._st);window._st=setTimeout(saveDay,800);}
 function saveDay(){
   if(!curDate)return;
-  const slots={},tasks={},comms={};
-  document.querySelectorAll('.time-block[data-time]').forEach(b=>{
-    const ta=b.querySelector('.t-inp');
-    slots[b.dataset.time]={val:ta?ta.value:'',cat:b.dataset.cat||'',worked:b.classList.contains('worked'),endtime:b.dataset.endtime||'',continuationOf:b.dataset.continuationOf||'',rrfreq:b.dataset.rrfreq||'',rrendtype:b.dataset.rrendtype||'',rrcount:b.dataset.rrcount||'',rruntil:b.dataset.rruntil||'',location:b.dataset.location||''};
+  const tasks={hoog:[],midden:[],laag:[]};
+  ['hoog','midden','laag'].forEach(p=>{
+    document.querySelectorAll('#tl-'+p+' .task-item').forEach(it=>{
+      const cb=it.querySelector('.t-cb'),ta=it.querySelector('.t-txt');
+      if(ta)tasks[p].push({text:ta.value,done:cb?cb.checked:false});
+    });
   });
-  ['hoog','midden','laag'].forEach(p=>{tasks[p]=[];document.querySelectorAll('#tl-'+p+' .task-item').forEach(it=>{tasks[p].push({text:it.querySelector('.t-txt').value,done:it.querySelector('.t-cb').checked});});});
-  ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked});});});
-  const am=document.querySelector('.mood-btn.on');
-  const banner=getBannerData();
-  const obj={
-    updatedAt:Date.now(),
-    v:2, 
-    intent:document.getElementById('intentInp').value,
+  const comms={bellen:[],mailen:[],bespreken:[]};
+  ['bellen','mailen','bespreken'].forEach(t=>{
+    document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{
+      const cb=it.querySelector('.c-cb'),ta=it.querySelector('.c-txt');
+      if(ta)comms[t].push({text:ta.value,done:cb?cb.checked:false});
+    });
+  });
+  const mood=document.querySelector('.mood-btn.on');
+  const chips=Array.from(document.querySelectorAll('.day-chip.active')).map(c=>c.dataset.type);
+  const bannerInp=document.getElementById('dayBannerInp');
+  const data={appointments,tasks,comms,
     notes:document.getElementById('notesArea').value,
-    mood:am?am.textContent:'',
+    intent:document.getElementById('intentInp').value,
+    mood:mood?Array.from(document.querySelectorAll('.mood-btn')).indexOf(mood):-1,
     wStart:document.getElementById('wStart').value,
     wEnd:document.getElementById('wEnd').value,
-    banner,slots,tasks,comms
+    chips,bannerText:bannerInp?bannerInp.value:'',
+    banner:{type:chips[0]||'',text:bannerInp?bannerInp.value:''}
   };
-  const payload=JSON.stringify(obj);
-  const hk=sk(curDate)+'_history';
-  let hist=[];try{hist=JSON.parse(localStorage.getItem(hk))||[];}catch{}
-  const old=localStorage.getItem(sk(curDate));if(old)hist.unshift(old);
-  localStorage.setItem(hk,JSON.stringify(hist.slice(0,10)));
-  localStorage.setItem(sk(curDate),payload);
-  const hasContent=JSON.stringify(slots).length>50||document.getElementById('notesArea').value.trim();
-  if(hasContent)syncToCloud(sk(curDate),payload);
+  localStorage.setItem(sk(curDate),JSON.stringify(data));
 }
-let _st;function autoSave(){clearTimeout(_st);_st=setTimeout(saveDay,800);}
-function clearUI(){
-  document.querySelectorAll('.time-block').forEach(b=>{
-    const ta=b.querySelector('.t-inp');if(ta){ta.value='';ta.style.height='';}
-    const ct=b.querySelector('.cat-tag');if(ct)ct.textContent='';
-    delete b.dataset.cat;delete b.dataset.endtime;delete b.dataset.continuationOf;
-    delete b.dataset.rrfreq;delete b.dataset.rrendtype;delete b.dataset.rrcount;delete b.dataset.rruntil;delete b.dataset.location;
-    b.classList.remove('worked','cont');
-    ['et-badge','rr-badge','loc-badge'].forEach(cls=>{const el=b.querySelector('.'+cls);if(el)el.remove();});
-  });
-  ['hoog','midden','laag'].forEach(p=>document.getElementById('tl-'+p).innerHTML='');
-  ['bellen','mailen','bespreken'].forEach(t=>document.getElementById('cl-'+t).innerHTML='');
-  document.getElementById('intentInp').value='';
-  document.getElementById('notesArea').value='';
-  document.getElementById('wStart').value='08:00';
-  document.getElementById('wEnd').value='16:30';
-  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
-  document.getElementById('hLoc').textContent='';
-  setBannerData(null);
-  const page=document.querySelector('.page');if(page)page.style.background='white';
-}
-function applyS(time,val,cat){
-  const b=document.querySelector(`.time-block[data-time="${time}"]`);if(!b)return;
-  const ta=b.querySelector('.t-inp'),ct=b.querySelector('.cat-tag');
-  if(ta&&!ta.value.trim()){ta.value=val;ta.style.height='auto';ta.style.height=Math.max(22,ta.scrollHeight)+'px';}
-  if(!b.dataset.cat&&cat)setCatS(b,ct,cat);
-}
-function applyFixed(dateStr){
-  const d=pd(dateStr),dow=d.getDay(),mo=d.getMonth();
-  document.getElementById('hLoc').textContent=WL[dow]?'Locatie: '+WL[dow]:'';
-  const sf=SCHOOL_FREE[dateStr];
-  if(sf){
-    const bannerEl=document.getElementById('dayBannerInp');
-    if(bannerEl&&!bannerEl.value){
-      bannerEl.value=sf.label;
-    }
-    const typeMap={vakantie:'vakantie',feestdag:'vrij',roostervrij:'vrij'};
-    const chipType=typeMap[sf.type]||'vrij';
-    const chip=document.querySelector(`.day-chip[data-type="${chipType}"]`);
-    if(chip&&!document.querySelector('.day-chip.active')) chip.classList.add('active');
-    const page=document.querySelector('.page');
-    if(page) page.style.background=sf.color;
-  } else {
-    const page=document.querySelector('.page');
-    if(page) page.style.background='white';
-  }
-  if([1,2,4,5].includes(dow)){
-    applyS('10:30','Pauze (20 min.)','pauze');applyS('10:45','','pauze');
-    applyS('12:10','Pauze (30 min.)','pauze');applyS('12:15','','pauze');applyS('12:25','','pauze');applyS('12:30','','pauze');
-    applyS('14:00','Pauze (10 min.)','pauze');
-  }
-  if(dow===2){['09:15','09:30','09:45','10:00','10:15'].forEach(t=>applyS(t,'IZO - intern zorgoverleg','locatie'));}
-  if(dow===5){['11:00','11:15','11:30','11:45'].forEach(t=>applyS(t,'Weekplanning maken','admin'));}
-  if(dow===3){
-    applyS('07:30','Reistijd - Schoonhoven naar Utrecht Mariaplaats (BiOND, 45 min)','reistijd');
-    applyS('07:45','Reistijd - onderweg naar Utrecht','reistijd');
-    applyS('08:00','Reistijd - onderweg naar Utrecht','reistijd');
-    applyS('08:15','Aankomst BiOND - Mariaplaats Utrecht','reistijd');
-    applyS('17:00','Reistijd - Utrecht Mariaplaats naar Schoonhoven (45 min)','reistijd');
-    applyS('17:15','Reistijd - onderweg terug','reistijd');
-    applyS('17:30','Reistijd - onderweg terug','reistijd');
-    applyS('17:45','Aankomst Schoonhoven','reistijd');
-    const na=document.getElementById('notesArea');
-    if(!na.value)na.value='BiOND - Mariaplaats, Utrecht\nRijroute: Schoonhoven > A12 > Utrecht Centrum > Mariaplaats';
-  }
-  if(dow===3&&(mo===5||mo===6)&&d.getFullYear()===YEAR){
-    applyS('07:15','Auto naar Hondendagopvang Matties, Lopik (15 min)','reistijd');
-    applyS('07:30','Hond brengen - Hondendagopvang Matties, Lekdijk West 44, Lopik','reistijd');
-    applyS('07:45','Auto terug naar Schoonhoven (15 min)','reistijd');
-    applyS('16:45','Auto naar Hondendagopvang Matties, Lopik (ophalen, 15 min)','reistijd');
-    applyS('17:00','Hond ophalen - Hondendagopvang Matties, Lekdijk West 44, Lopik','reistijd');
-    applyS('17:15','Auto terug naar Schoonhoven (15 min)','reistijd');
-    const na=document.getElementById('notesArea');
-    if(!na.value)na.value='Hondendagopvang Matties\nLekdijk West 44, 3411 MX Lopik\nBrengen 07:30 - Ophalen 17:00\nRoute: N210 richting Lopik > Lekdijk West (15 min)';
-  }
-}
+
 function loadDay(dateStr){
+  appointments=[];apptNextId=1;
   clearUI();
   const raw=localStorage.getItem(sk(dateStr));
   if(raw){
     try{
       const d=JSON.parse(raw);
       if(d.intent)document.getElementById('intentInp').value=d.intent;
+      if(d.appointments&&Array.isArray(d.appointments)){appointments=d.appointments;apptNextId=Math.max(1,...(appointments.length?appointments.map(a=>a.id+1):[1]));}
       if(d.notes)document.getElementById('notesArea').value=d.notes;
       if(d.wStart)document.getElementById('wStart').value=d.wStart;
       if(d.wEnd)document.getElementById('wEnd').value=d.wEnd;
@@ -828,6 +1301,7 @@ function loadDay(dateStr){
 }
 function selectDay(dateStr){
   try{
+    if(curDate&&curDate!==dateStr)rolloverTasks(curDate);
     if(curDate)saveDay();
     curDate=dateStr;
     const d=pd(dateStr);curMonth=d.getMonth();
@@ -835,7 +1309,7 @@ function selectDay(dateStr){
     document.getElementById('hDate').textContent=`${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`;
     document.getElementById('hDay').textContent=DAYS_NL[d.getDay()];
     document.querySelectorAll('.month-tab').forEach((t,i)=>t.classList.toggle('active',MONTHS[i]===d.getMonth()));
-    loadDay(dateStr);renderCal();
+    loadDay(dateStr);renderCal();setTimeout(renderAgenda,50);
   }catch(e){console.error('selectDay:',e);}
 }
 function shiftDay(n){
@@ -1106,6 +1580,7 @@ function seedIfNew(d,data){if(!localStorage.getItem(sk(d)))localStorage.setItem(
 function seedAll(){}
 
 let _clk;
+
 function startClock(){
   clearInterval(_clk);
   _clk=setInterval(()=>{
@@ -1116,6 +1591,59 @@ function startClock(){
     }
   },60000);
 }
+
+/* === TAKEN DOORSCHUIVEN === */
+function getNextWorkday(isoDate){
+  const d=new Date(isoDate+'T00:00:00');
+  do{d.setDate(d.getDate()+1);}while(d.getDay()===0||d.getDay()===6);
+  return d.toISOString().slice(0,10);
+}
+
+function rolloverTasks(fromDate){
+  const raw=localStorage.getItem(sk(fromDate));
+  if(!raw)return;
+  let data;
+  try{data=JSON.parse(raw);}catch(e){return;}
+  const tasks=data.tasks;
+  if(!tasks)return;
+  const openTasks={hoog:[],midden:[],laag:[]};
+  let hasOpen=false;
+  ['hoog','midden','laag'].forEach(p=>{
+    (tasks[p]||[]).forEach(t=>{
+      if(!t.done&&t.text&&t.text.trim()){
+        openTasks[p].push({text:t.text,done:false,rolledOver:true});
+        hasOpen=true;
+      }
+    });
+  });
+  if(!hasOpen)return;
+  const toDate=getNextWorkday(fromDate);
+  const toRaw=localStorage.getItem(sk(toDate));
+  let toData;
+  try{toData=toRaw?JSON.parse(toRaw):{};}catch(e){toData={};}
+  if(!toData.tasks)toData.tasks={hoog:[],midden:[],laag:[]};
+  let added=0;
+  ['hoog','midden','laag'].forEach(p=>{
+    openTasks[p].forEach(newTask=>{
+      const alreadyThere=(toData.tasks[p]||[]).some(
+        ex=>ex.text.trim()===newTask.text.trim()
+      );
+      if(!alreadyThere){
+        if(!toData.tasks[p])toData.tasks[p]=[];
+        toData.tasks[p].push(newTask);
+        added++;
+      }
+    });
+  });
+  if(added>0){
+    localStorage.setItem(sk(toDate),JSON.stringify(toData));
+    showTip('Taken doorgeschoven',
+      added+' open '+(added===1?'taak':'taken')+
+      ' doorgeschoven naar de volgende werkdag. Ze staan in cursief bovenaan de lijst.',
+      '#008972');
+  }
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   buildGrid();
   document.getElementById('btnPrev').addEventListener('click',()=>shiftDay(-1));
@@ -1186,6 +1714,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
 });
+
 
 </script>
 </body>
