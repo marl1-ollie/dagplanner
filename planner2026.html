@@ -1049,20 +1049,15 @@ function importICS(input){
         const raw=localStorage.getItem(sk(iso));
         let dayData={slots:{},tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]},intent:'',notes:'',wStart:'08:00',wEnd:'16:30',mood:'',updatedAt:Date.now()};
         if(raw){try{dayData=JSON.parse(raw);}catch(ex){}}
+        if(!dayData.appointments)dayData.appointments=[];
         evs.forEach(ev=>{
-          const slots=getTimeSlots(ev.startTime,ev.endTime);
           const cat=guessCat(ev.summary,ev.location);
-          slots.forEach((t,i)=>{
-            if(!dayData.slots[t])dayData.slots[t]={val:'',cat:'',worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:'',location:''};
-            if(!dayData.slots[t].val){
-              dayData.slots[t].val=i===0?ev.summary:'';
-              dayData.slots[t].cat=cat;
-              if(ev.location&&i===0)dayData.slots[t].location=ev.location;
-              if(i===0&&slots.length>1)dayData.slots[t].endtime=slots[slots.length-1];
-              if(i>0)dayData.slots[t].continuationOf=slots[0];
-            }
-          });
-          imported++;
+          const alreadyThere=dayData.appointments.some(a=>a.title===ev.summary&&a.start===ev.startTime);
+          if(!alreadyThere){
+            const newId=dayData.appointments.length?Math.max(...dayData.appointments.map(a=>a.id))+1:1;
+            dayData.appointments.push({id:newId,title:ev.summary||'Afspraak',loc:ev.location||'',start:ev.startTime||'09:00',end:ev.endTime||'10:00',cat:cat,note:ev.description||''});
+            imported++;
+          }
         });
         dayData.updatedAt=Date.now();
         localStorage.setItem(sk(iso),JSON.stringify(dayData));
