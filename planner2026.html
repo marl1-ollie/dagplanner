@@ -1176,6 +1176,20 @@ function saveDay(){
   localStorage.setItem(sk(curDate),JSON.stringify(data));
 }
 
+function clearUI(){
+  appointments=[];
+  ['hoog','midden','laag'].forEach(p=>{const el=document.getElementById('tl-'+p);if(el)el.innerHTML='';});
+  ['bellen','mailen','bespreken'].forEach(t=>{const el=document.getElementById('cl-'+t);if(el)el.innerHTML='';});
+  const intentInp=document.getElementById('intentInp');if(intentInp)intentInp.value='';
+  const notesArea=document.getElementById('notesArea');if(notesArea)notesArea.value='';
+  const wStart=document.getElementById('wStart');if(wStart)wStart.value='08:00';
+  const wEnd=document.getElementById('wEnd');if(wEnd)wEnd.value='16:30';
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
+  const hLoc=document.getElementById('hLoc');if(hLoc)hLoc.textContent='';
+  const bannerInp=document.getElementById('dayBannerInp');if(bannerInp)bannerInp.value='';
+  document.querySelectorAll('.day-chip').forEach(c=>c.classList.remove('active'));
+  renderAgenda();
+}
 function loadDay(dateStr){
   appointments=[];apptNextId=1;
   clearUI();
