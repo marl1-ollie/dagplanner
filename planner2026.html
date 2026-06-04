@@ -1061,7 +1061,6 @@ function importICS(input){
         });
         dayData.updatedAt=Date.now();
         localStorage.setItem(sk(iso),JSON.stringify(dayData));
-        syncToCloud(sk(iso),JSON.stringify(dayData));
       });
       if(curDate&&perDay[curDate]){loadDay(curDate);updateHours();}
       input.value='';
