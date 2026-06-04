@@ -1109,16 +1109,20 @@ function parseICSDate(val){
     return{date:new Date(parseInt(dm[1]),parseInt(dm[2])-1,parseInt(dm[3])),time:'00:00'};
   }
   let d;
+  let year,month,day,hour,minute;
   if(isUTC){
-    // Converteer UTC naar lokale tijd
-    d=new Date(val.slice(0,4)+'-'+val.slice(4,6)+'-'+val.slice(6,8)+'T'+val.slice(9,11)+':'+val.slice(11,13)+':00Z');
+    // Handmatig UTC naar CEST (+2 uur) converteren
+    year=parseInt(m[1]);month=parseInt(m[2])-1;day=parseInt(m[3]);
+    hour=parseInt(m[4])+2;minute=parseInt(m[5]);
+    // Overflow afhandelen
+    if(hour>=24){hour-=24;day+=1;}
   } else {
-    d=new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]),parseInt(m[4]),parseInt(m[5]));
+    year=parseInt(m[1]);month=parseInt(m[2])-1;day=parseInt(m[3]);
+    hour=parseInt(m[4]);minute=parseInt(m[5]);
   }
-  const date=new Date(d.getFullYear(),d.getMonth(),d.getDate());
-  const h=d.getHours(),min=d.getMinutes();
-  const roundedMin=Math.round(min/15)*15;
-  const finalH=roundedMin===60?h+1:h;
+  const date=new Date(year,month,day);
+  const roundedMin=Math.round(minute/15)*15;
+  const finalH=roundedMin===60?hour+1:hour;
   const finalM=roundedMin===60?0:roundedMin;
   const time=String(finalH).padStart(2,'0')+':'+String(finalM).padStart(2,'0');
   return{date,time};
