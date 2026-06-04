@@ -1289,20 +1289,8 @@ function shiftDay(n){
   try{
     const d=pd(curDate);
     d.setDate(d.getDate()+n);
-    // Weekenden overslaan - max 2 stappen extra
-    let safety=0;
-    while((d.getDay()===0||d.getDay()===6)&&safety<3){
-      d.setDate(d.getDate()+(n>=0?1:-1));
-      safety++;
-    }
     const iso=toISO(d.getFullYear(),d.getMonth(),d.getDate());
     if(MONTHS.includes(d.getMonth()))selectDay(iso);
-    else{
-      // Buiten plannerperiode - ga naar eerste/laatste dag van laatste/eerste maand
-      const lastMonth=MONTHS[n>=0?MONTHS.length-1:0];
-      const lastDay=n>=0?new Date(YEAR,lastMonth+1,0).getDate():1;
-      selectDay(toISO(YEAR,lastMonth,lastDay));
-    }
   }catch(e){console.error('shiftDay:',e);}
 }
 function gotoMonth(m){
