@@ -281,8 +281,8 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 
 /* Doorgeschoven taken */
 .t-txt.rolled { color: #9aabb5; font-style: italic; }
-.t-txt.rolled::before { content: '↩ '; font-size: 9px; }
-.task-item.rolled { background: #f8fafc; border-left: 2px solid #c8d4db; }
+.task-item.rolled { background: #f8fafc; border-left: 3px solid #c8d4db; position: relative; }
+.task-item.rolled::before { content: '↩'; position: absolute; left: -1px; top: 4px; font-size: 9px; color: #9aabb5; font-style: normal; }
 
 </style>
 </head>
@@ -736,6 +736,12 @@ function getNextWorkday(isoDate){
 }
 
 function rolloverTasks(fromDate){
+  // Alleen doorschuiven als fromDate niet in de toekomst ligt
+  const today=isoToday();
+  if(fromDate>today)return;
+  // Niet doorschuiven als we terugnavigeren (toDate moet groter zijn dan fromDate)
+  const toDate=getNextWorkday(fromDate);
+  if(toDate>isoToday()&&fromDate<isoToday())return; // skip als we ver in toekomst gaan
   const raw=localStorage.getItem(sk(fromDate));
   if(!raw)return;
   let data;
@@ -1006,7 +1012,7 @@ function addTask(prio,text='',done=false,rolledOver=false){
   const list=document.getElementById('tl-'+prio);
   const item=document.createElement('div');item.className='task-item'+(rolledOver?' rolled':'');
   const cb=document.createElement('input');cb.type='checkbox';cb.className='t-cb';cb.checked=done;
-  const ta=document.createElement('textarea');ta.className='t-txt'+(done?' done':'')+(rolledOver?' rolled':'');ta.rows=1;ta.value=text;ta.placeholder='Taak...';
+  const ta=document.createElement('textarea');ta.className='t-txt'+(done?' done':'')+(rolledOver?' rolled':'');if(rolledOver)ta.title='Doorgeschoven van vorige werkdag';ta.rows=1;ta.value=text;ta.placeholder='Taak...';
   cb.onchange=()=>{
     ta.classList.toggle('done',cb.checked);
     if(cb.checked){ta.classList.remove('rolled');item.classList.remove('rolled');}
@@ -1195,7 +1201,7 @@ function loadDay(dateStr){
         if(s.location){b.dataset.location=s.location;let lb=b.querySelector('.loc-badge');if(!lb){lb=document.createElement('span');lb.className='loc-badge';b.appendChild(lb);}lb.textContent=s.location;}
       });
       const ll=(items,fn,id,min)=>{(items||[]).forEach(it=>fn(id,it.text,it.done));for(let i=(items||[]).length;i<min;i++)fn(id,'');};
-      if(d.tasks)['hoog','midden','laag'].forEach(p=>ll(d.tasks[p],addTask,p,2));
+      if(d.tasks)['hoog','midden','laag'].forEach(p=>{(d.tasks[p]||[]).forEach(t=>addTask(p,t.text||'',t.done||false,!t.done&&t.rolledOver));for(let i=(d.tasks[p]||[]).length;i<2;i++)addTask(p,'',false,false);});
       else['hoog','midden','laag'].forEach(p=>{for(let i=0;i<2;i++)addTask(p,'');});
       if(d.comms)['bellen','mailen','bespreken'].forEach(t=>ll(d.comms[t],addComm,t,2));
       else['bellen','mailen','bespreken'].forEach(t=>{for(let i=0;i<2;i++)addComm(t,'');});
@@ -1211,7 +1217,7 @@ function loadDay(dateStr){
 }
 function selectDay(dateStr){
   try{
-    if(curDate&&curDate!==dateStr)rolloverTasks(curDate);
+    if(curDate&&curDate!==dateStr&&dateStr>curDate)rolloverTasks(curDate);
     if(curDate)saveDay();
     curDate=dateStr;
     const d=pd(dateStr);curMonth=d.getMonth();
