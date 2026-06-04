@@ -1559,76 +1559,7 @@ let _clk;
 
 
 
-document.addEventListener('DOMContentLoaded',()=>{
-  buildGrid();
-  document.getElementById('btnPrev').addEventListener('click',()=>shiftDay(-1));
-  document.getElementById('btnNext').addEventListener('click',()=>shiftDay(1));
-  document.querySelectorAll('.month-tab[data-month]').forEach(btn=>{
-    btn.addEventListener('click',()=>gotoMonth(parseInt(btn.dataset.month)));
-  });
-  document.getElementById('btnPrint').addEventListener('click',()=>window.print());
-  document.getElementById('btnOutlook').addEventListener('click',()=>exportICS());
-  document.getElementById('btnExport').addEventListener('click',()=>exportData());
-  document.getElementById('btnImport').addEventListener('click',()=>document.getElementById('importFile').click());
-  document.getElementById('btnIcs').addEventListener('click',()=>document.getElementById('icsFile').click());
-  document.getElementById('btnSync').addEventListener('click',()=>manualSync());
-  document.getElementById('btnClear').addEventListener('click',()=>clearCurDay());
-  document.getElementById('btnReset').addEventListener('click',()=>fullReset());
-  document.querySelectorAll('.day-chip').forEach(btn=>{
-    btn.addEventListener('click',()=>toggleChip(btn));
-  });
-  document.querySelectorAll('.mood-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>setMood(btn));
-  });
-  document.getElementById('intentInp').addEventListener('input',autoSave);
-  document.getElementById('notesArea').addEventListener('input',autoSave);
-  seedAll();
-  const today=isoToday();
-  const td=pd(today);
-  const todayMonth=td.getMonth();
-  const todayYear=td.getFullYear();
-  const inRange=todayYear===YEAR&&MONTHS.includes(todayMonth);
-  const start=inRange?today:toISO(YEAR,4,1);
-  curMonth=pd(start).getMonth();
-  document.querySelectorAll('.month-tab').forEach((t,i)=>{
-    t.classList.toggle('active',MONTHS[i]===curMonth);
-  });
-  selectDay(start);
-  startClock();
-  setTimeout(async()=>{
-    const count=await syncAllFromCloud();
-    if(count>0&&curDate){loadDay(curDate);updateHours();}
-    startAutoSync();
-  },1500);
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(regs=>{
-      regs.forEach(r=>r.unregister());
-    });
-  }
-  let dp=null;
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const b=document.getElementById('installBanner');if(b)b.style.display='flex';});
-  window.addEventListener('appinstalled',()=>{dp=null;const b=document.getElementById('installBanner');if(b)b.style.display='none';});
-  const ib=document.getElementById('installBtn');
-  if(ib){
-    ib.addEventListener('click',async function(){
-      if(!dp)return;
-      dp.prompt();
-      var choice=await dp.userChoice;
-      if(choice.outcome==='accepted'){
-        var bn=document.getElementById('installBanner');
-        if(bn)bn.style.display='none';
-      }
-      dp=null;
-    });
-  }
-  const ic=document.getElementById('installClose');
-  if(ic){
-    ic.addEventListener('click',function(){
-      var bn=document.getElementById('installBanner');
-      if(bn)bn.style.display='none';
-    });
-  }
-});
+);
 
 
 </script>
