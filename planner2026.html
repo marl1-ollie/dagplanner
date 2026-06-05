@@ -1605,15 +1605,24 @@ document.addEventListener('DOMContentLoaded',()=>{
     const SKIP=/^(van|from|verzonden|sent|aan|to|cc|bcc|datum|date|onderwerp|subject|importance|urgentie|bijlagen?|attachments?|maak een samenvatting|summarize)/i;
     // Herkent een naam in "Achternaam, Voorletters"-vorm, bijv. "Visser, D.A."
     const NAAM=/^[A-Za-zÀ-ÿ'’\-]+(?:\s+(?:van|van der|van den|de|den|der|ter|te))?\s*,\s*[A-Za-zÀ-ÿ.\s'’\-]+$/;
+    // Marleen zelf -> nooit als afzender pakken
+    const EIGEN_NAAM=/^vennix-oudshoorn,\s*m\.?l\.?/i;
+    // splitst een puntkomma-lijst en haalt de eigen naam eruit
+    const schoonNaam=l=>l.split(';').map(s=>s.trim()).filter(s=>s&&!EIGEN_NAAM.test(s))[0]||'';
     // Probeert uit geplakte mailtekst onderwerp + afzender te halen
     const parseMail=txt=>{
-      const lines=txt.split(/\r\n|\r|\n/).map(l=>l.trim());
-      const nonEmpty=lines.filter(l=>l);
+      const nonEmpty=txt.split(/\r\n|\r|\n/).map(l=>l.trim()).filter(l=>l);
       if(nonEmpty.length<2)return null;            // te kort voor een mail
       const onderwerp=nonEmpty[0];                 // eerste regel = onderwerp
-      const afzender=nonEmpty.find(l=>NAAM.test(l));// eerste naam-regel = afzender
+      // kandidaat-afzenders: regels ná de eerste, geen ruis, geen MT-vlag, eigen naam eruit
+      const kandidaten=nonEmpty.slice(1)
+        .filter(l=>!SKIP.test(l)&&l!=='MT-belangrijk')
+        .map(schoonNaam)
+        .filter(l=>l);
+      // liefst een echte komma-naam, anders de eerste overgebleven regel (bijv. "Secretariaat")
+      const afzender=kandidaten.find(l=>NAAM.test(l))||kandidaten[0]||'';
       if(!afzender)return null;                    // geen afzender herkend -> geen mail
-      const isMT=nonEmpty.some(l=>/^mt-belangrijk/i.test(l)||/\bMT-belangrijk\b/i.test(l));
+      const isMT=nonEmpty.some(l=>/\bMT-belangrijk\b/i.test(l));
       return {text:afzender+' — '+onderwerp, mailcat:isMT?'mt':''};
     };
     const addMailLines=txt=>{
