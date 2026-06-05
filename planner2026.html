@@ -302,6 +302,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
     <button class="btn btn-ics"     id="btnIcs">&#128197; Outlook importeren</button>
     <input type="file" id="icsFile" accept=".ics" style="display:none" onchange="importICS(this)">
     <button class="btn btn-sync"    id="btnSync">&#9729; Sync</button>
+    <button class="btn" style="background:#000;color:white" onclick="openNotionSettings()">N Notion</button>
     <span id="syncStatus" class="sync-status"></span>
     <button class="btn btn-clear"   id="btnClear">&#10005; Dag wissen</button>
     <button class="btn btn-reset"   id="btnReset">&#8635; Reset alles</button>
@@ -400,13 +401,31 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 <div class="time-row"><div><label>Van</label><input type="time" id="amStart" value="09:00"></div><div><label>Tot</label><input type="time" id="amEnd" value="10:00"></div></div>
 <label>Type</label><select id="amCat"><option value="locatie">Op locatie</option><option value="extern">Extern</option><option value="online">Online</option><option value="admin">Administratief</option><option value="telefoon">Telefonisch</option><option value="reistijd">Reistijd</option><option value="pauze">Pauze</option></select>
 <label>Notitie</label><textarea id="amNote" placeholder="Voorbereiding, link, agendapunten..."></textarea>
+<label>Herhaling</label>
+<select id="amRepeat">
+  <option value="">Geen herhaling</option>
+  <option value="daily">Dagelijks</option>
+  <option value="weekly">Wekelijks</option>
+  <option value="biweekly">Tweewekelijks</option>
+  <option value="monthly">Maandelijks</option>
+</select>
+<div id="amRepeatEnd" style="display:none;margin-top:6px;">
+  <label>Herhalen t/m</label>
+  <input type="date" id="amRepeatUntil" min="2026-05-01" max="2026-07-31" value="2026-07-31">
+</div>
 <div class="forward-panel" id="amForwardPanel"><label>E-mail collega</label><input type="email" id="amColleague" placeholder="collega@school.nl"></div>
 <div class="modal-btns">
 <button class="mbtn-save" onclick="saveAppt()">Opslaan</button>
 <button class="mbtn-delete" id="amBtnDelete" onclick="deleteAppt()" style="display:none">Verwijder</button>
 <button class="mbtn-cancel" onclick="closeApptModal()">Annuleer</button>
 </div></div></div>
-<script>document.getElementById('apptModalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeApptModal();});</script>
+<script>
+document.getElementById('amRepeat').addEventListener('change',function(){
+  document.getElementById('amRepeatEnd').style.display=this.value?'block':'none';
+});
+</script>
+<script>document.getElementById('apptModalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeApptModal();});
+document.getElementById('notionSettingsOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});</script>
 <script>
 
 
@@ -1270,10 +1289,13 @@ function renderAgenda(){
     el.className='appt';el.dataset.id=a.id;el.dataset.cat=a.cat||'locatie';
     el.style.top=y+'px';el.style.height=h+'px';
     el.innerHTML='<div class="appt-time">'+a.start+' – '+a.end+'</div>'+
-      '<div class="appt-title">'+a.title+'</div>'+
+      '<div class="appt-title">'+a.title+(a.repeat?'<span style="font-size:8px;opacity:.6;margin-left:3px">↻</span>':'')+'</div>'+
       (a.loc?'<div class="appt-loc">'+a.loc+'</div>':'')+
-      '<div class="appt-btns"><button class="appt-btn" onclick="openApptModal('+a.id+');event.stopPropagation()">✏</button>'+
-      '<button class="appt-btn" onclick="forwardAppt('+a.id+');event.stopPropagation()">→</button></div>'+
+      '<div class="appt-btns">'+
+      '<button class="appt-btn" title="Bewerken" onclick="openApptModal('+a.id+');event.stopPropagation()">✏</button>'+
+      '<button class="appt-btn" title="Doorsturen" onclick="forwardAppt('+a.id+');event.stopPropagation()">→</button>'+
+      (a.notionUrl?'<button class="appt-btn" title="Open in Notion" onclick="openNotionPage(''+a.notionUrl+'');event.stopPropagation()" style="background:#000;color:#fff">N</button>':'<button class="appt-btn" title="Maak Notion pagina" onclick="openNotionModal('+a.id+');event.stopPropagation()" style="background:#f0f0f0">N</button>')+
+      '</div>'+
       '<div class="resize-handle" data-id="'+a.id+'"></div>';
     el.addEventListener('mousedown',onApptDrag);
     el.querySelector('.resize-handle').addEventListener('mousedown',onApptResize);
@@ -1342,6 +1364,9 @@ function openApptModal(id,defaultStart){
   document.getElementById('amEnd').value=a?a.end:mins2t(t2mins(defaultStart||'09:00')+60);
   document.getElementById('amCat').value=a?a.cat:activeCat;
   document.getElementById('amNote').value=a?a.note:'';
+  document.getElementById('amRepeat').value=a?a.repeat||'':'';
+  document.getElementById('amRepeatUntil').value=a?a.repeatUntil||'2026-07-31':'2026-07-31';
+  document.getElementById('amRepeatEnd').style.display=(a&&a.repeat)?'block':'none';
   document.getElementById('amBtnDelete').style.display=a?'':'none';
   document.getElementById('amForwardPanel').classList.remove('open');
   document.getElementById('apptModalOverlay').classList.add('open');
@@ -1351,8 +1376,18 @@ function closeApptModal(){document.getElementById('apptModalOverlay').classList.
 function saveAppt(){
   const title=document.getElementById('amApptTitle').value.trim();if(!title)return;
   const data={title,loc:document.getElementById('amLoc').value.trim(),start:document.getElementById('amStart').value,end:document.getElementById('amEnd').value,cat:document.getElementById('amCat').value,note:document.getElementById('amNote').value.trim()};
-  if(editingApptId){const a=appointments.find(x=>x.id===editingApptId);if(a)Object.assign(a,data);}
-  else{appointments.push({id:apptNextId++,...data});}
+  const repeat=document.getElementById('amRepeat').value;
+  const repeatUntil=repeat?document.getElementById('amRepeatUntil').value:'';
+  data.repeat=repeat;data.repeatUntil=repeatUntil;
+  if(editingApptId){
+    const a=appointments.find(x=>x.id===editingApptId);
+    if(a)Object.assign(a,data);
+    if(repeat)applyRepeat(data,editingApptId);
+  } else {
+    const newId=apptNextId++;
+    appointments.push({id:newId,...data});
+    if(repeat)applyRepeat(data,newId);
+  }
   closeApptModal();autoSave();renderAgenda();
 }
 function deleteAppt(){
@@ -1395,6 +1430,134 @@ function rolloverTasks(fromDate){
     localStorage.setItem(sk(toDate),JSON.stringify(toData));
     showTip('Taken doorgeschoven',added+' open '+(added===1?'taak':'taken')+' doorgeschoven naar volgende werkdag.','#008972');
   }
+}
+
+
+/* === HERHALING === */
+function applyRepeat(apptData, sourceId){
+  const intervals={daily:1,weekly:7,biweekly:14,monthly:0};
+  const freq=apptData.repeat;
+  if(!freq)return;
+  const until=new Date(apptData.repeatUntil+'T00:00:00');
+  
+  // Find source day from curDate
+  let d=new Date(curDate+'T00:00:00');
+  const maxDays=180;
+  let count=0;
+  
+  while(count<maxDays){
+    count++;
+    if(freq==='monthly'){
+      d=new Date(d.getFullYear(),d.getMonth()+1,d.getDate());
+    } else {
+      d.setDate(d.getDate()+intervals[freq]);
+    }
+    if(d>until)break;
+    
+    const iso=d.toISOString().slice(0,10);
+    const targetMonth=d.getMonth();
+    if(!MONTHS.includes(targetMonth))continue;
+    
+    // Load or create day data
+    const raw=localStorage.getItem(sk(iso));
+    let dayData={slots:{},tasks:{hoog:[],midden:[],laag:[]},comms:{bellen:[],mailen:[],bespreken:[]},intent:'',notes:'',wStart:'08:00',wEnd:'16:30',mood:'',updatedAt:Date.now(),appointments:[]};
+    if(raw){try{dayData=JSON.parse(raw);}catch(ex){}}
+    if(!dayData.appointments)dayData.appointments=[];
+    
+    // Voeg toe als niet al aanwezig
+    const alreadyThere=dayData.appointments.some(a=>a.title===apptData.title&&a.start===apptData.start&&a.repeatSourceId===sourceId);
+    if(!alreadyThere){
+      const newId=dayData.appointments.length?Math.max(...dayData.appointments.map(a=>a.id))+1:1;
+      dayData.appointments.push({
+        id:newId,
+        title:apptData.title,
+        loc:apptData.loc||'',
+        start:apptData.start,
+        end:apptData.end,
+        cat:apptData.cat||'locatie',
+        note:apptData.note||'',
+        repeatSourceId:sourceId,
+        repeat:apptData.repeat,
+        repeatUntil:apptData.repeatUntil
+      });
+      dayData.updatedAt=Date.now();
+      localStorage.setItem(sk(iso),JSON.stringify(dayData));
+    }
+  }
+  showTip('Herhaling ingepland','Afspraak herhaald t/m '+apptData.repeatUntil+'.','#1C829E');
+}
+
+/* === NOTION KOPPELING === */
+let notionConfig={apiKey:'',dbId:''};
+
+function openNotionSettings(){
+  const cfg=JSON.parse(localStorage.getItem('notionConfig')||'{}');
+  document.getElementById('notionApiKey').value=cfg.apiKey||'';
+  document.getElementById('notionDbId').value=cfg.dbId||'376564170fd280308e91cc49056fe3f6';
+  document.getElementById('notionSettingsOverlay').classList.add('open');
+}
+function saveNotionSettings(){
+  const key=document.getElementById('notionApiKey').value.trim();
+  const db=document.getElementById('notionDbId').value.trim();
+  if(!key||!db){alert('Vul beide velden in.');return;}
+  localStorage.setItem('notionConfig',JSON.stringify({apiKey:key,dbId:db}));
+  document.getElementById('notionSettingsOverlay').classList.remove('open');
+  showTip('Notion instellingen opgeslagen','Je kunt nu vergaderingen aanmaken in Notion.','#1C829E');
+}
+function openNotionModal(apptId){
+  const a=appointments.find(x=>x.id===apptId);if(!a)return;
+  const cfg=JSON.parse(localStorage.getItem('notionConfig')||'{}');
+  if(!cfg.apiKey){
+    openNotionSettings();
+    showTip('Notion instellen','Vul eerst je API token in en klik Opslaan.','#EB6334');
+    return;
+  }
+  createNotionPage(a,cfg);
+}
+
+async function createNotionPage(appt,cfg){
+  const date=curDate||isoToday();
+  const title=appt.title+' - '+date;
+  
+  const body={
+    parent:{database_id:cfg.dbId},
+    properties:{
+      Name:{title:[{text:{content:title}}]},
+      Datum:{date:{start:date}},
+      Locatie:{rich_text:[{text:{content:appt.loc||''}}]},
+      Type:{select:{name:appt.cat||'locatie'}}
+    },
+    children:[
+      {object:'block',type:'heading_2',heading_2:{rich_text:[{text:{content:'Voorbereiding'}}]}},
+      {object:'block',type:'paragraph',paragraph:{rich_text:[{text:{content:appt.note||'Vul hier je voorbereiding in...'}}]}},
+      {object:'block',type:'heading_2',heading_2:{rich_text:[{text:{content:'Verslag'}}]}},
+      {object:'block',type:'paragraph',paragraph:{rich_text:[{text:{content:'Vul hier je verslag in...'}}]}}
+    ]
+  };
+  
+  try{
+    const res=await fetch('https://api.notion.com/v1/pages',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+cfg.apiKey,'Content-Type':'application/json','Notion-Version':'2022-06-28'},
+      body:JSON.stringify(body)
+    });
+    const data=await res.json();
+    if(data.url){
+      // Sla Notion URL op bij afspraak
+      appt.notionUrl=data.url;
+      autoSave();
+      renderAgenda();
+      showTip('Notion pagina aangemaakt','<a href="'+data.url+'" target="_blank" style="color:white;text-decoration:underline">Open in Notion →</a>','#1C829E');
+    } else {
+      alert('Fout: '+JSON.stringify(data));
+    }
+  }catch(e){
+    alert('Notion fout: '+e.message);
+  }
+}
+
+function openNotionPage(url){
+  window.open(url,'_blank');
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1470,5 +1633,20 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 
 </script>
+
+<div class="modal-overlay" id="notionSettingsOverlay" style="z-index:1001;">
+<div class="modal">
+  <h3>⚙ Notion Instellingen</h3>
+  <label>API Token</label>
+  <input type="password" id="notionApiKey" placeholder="secret_...">
+  <label>Database ID</label>
+  <input type="text" id="notionDbId" placeholder="32 tekens" value="376564170fd280308e91cc49056fe3f6">
+  <p style="font-size:10px;color:#9aabb5;margin-top:8px;">Je API token is veilig opgeslagen in je browser en wordt nooit verstuurd naar andere servers dan Notion.</p>
+  <div class="modal-btns">
+    <button class="mbtn-save" onclick="saveNotionSettings()">Opslaan</button>
+    <button class="mbtn-cancel" onclick="document.getElementById('notionSettingsOverlay').classList.remove('open')">Annuleer</button>
+  </div>
+</div>
+</div>
 </body>
 </html>
