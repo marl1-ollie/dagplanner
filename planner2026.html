@@ -329,7 +329,6 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
     <button class="btn btn-ics"     id="btnIcs">&#128197; Outlook importeren</button>
     <input type="file" id="icsFile" accept=".ics" style="display:none" onchange="importICS(this)">
     <button class="btn btn-sync"    id="btnSync">&#9729; Sync</button>
-    <button class="btn" style="background:#000;color:white" onclick="openNotionSettings()">N Notion</button>
     <span id="syncStatus" class="sync-status"></span>
     <button class="btn btn-clear"   id="btnClear">&#10005; Dag wissen</button>
     <button class="btn btn-reset"   id="btnReset">&#8635; Reset alles</button>
@@ -398,7 +397,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
       <div class="task-sec prio-h"><div class="task-hdr"><div class="t-badge">!</div>Hoge prioriteit</div><div class="task-list" id="tl-hoog"></div><button class="add-btn add-task-btn" onclick="addTask('hoog')">+ Taak</button></div>
       <div class="task-sec prio-m"><div class="task-hdr"><div class="t-badge">2</div>Middel prioriteit</div><div class="task-list" id="tl-midden"></div><button class="add-btn add-task-btn" onclick="addTask('midden')">+ Taak</button></div>
       <div class="task-sec prio-l"><div class="task-hdr"><div class="t-badge">3</div>Lage prioriteit</div><div class="task-list" id="tl-laag"></div><button class="add-btn add-task-btn" onclick="addTask('laag')">+ Taak</button></div>
-      <div class="comm-sec comm-bellen"><div class="comm-hdr">Bellen</div><div class="name-chips" id="names-bellen"></div><div class="comm-list" id="cl-bellen"></div><button class="add-btn" style="color:#5573a0" onclick="addComm('bellen')">+ Toevoegen</button></div>
+      <div class="comm-sec comm-bellen"><div class="comm-hdr">Bellen</div><div class="comm-list" id="cl-bellen"></div><button class="add-btn" style="color:#5573a0" onclick="addComm('bellen')">+ Toevoegen</button></div>
       <div class="comm-sec comm-mailen"><div class="comm-hdr">Mailen</div><input class="mail-quick" id="mailQuick" placeholder="Mail-onderwerp + Enter"><div class="comm-list" id="cl-mailen"></div><button class="add-btn" style="color:#246060" onclick="addComm('mailen')">+ Toevoegen</button></div>
       <div class="comm-sec comm-bespreken"><div class="comm-hdr">Bespreken</div><div class="name-chips" id="names-bespreken"></div><div class="comm-list" id="cl-bespreken"></div><button class="add-btn" style="color:#70508a" onclick="addComm('bespreken')">+ Toevoegen</button></div>
       <div class="notes-sec"><div class="notes-hdr">Notities</div><textarea class="notes-area" id="notesArea" placeholder="Aantekeningen, follow-ups..."></textarea></div>
@@ -700,7 +699,7 @@ const MAIL_CATS=[
 ];
 const MAIL_CAT_FULL={mt:'MT',samenwerkingsverband:'Samenwerkingsverband',leerplicht:'Leerplicht',sociaalteam:'Sociaal team'};
 function buildNameChips(){
-  ['bellen','bespreken'].forEach(type=>{
+  ['bespreken'].forEach(type=>{
     const box=document.getElementById('names-'+type);if(!box||box.children.length)return;
     TEAM_NAMES.forEach(name=>{
       const b=document.createElement('button');b.className='name-chip';b.textContent=name;
@@ -1389,7 +1388,6 @@ function renderAgenda(){
       '<div class="appt-btns">'+
       '<button class="appt-btn" title="Bewerken" onclick="openApptModal('+a.id+');event.stopPropagation()">✏</button>'+
       '<button class="appt-btn" title="Doorsturen" onclick="forwardAppt('+a.id+');event.stopPropagation()">→</button>'+
-      '<button class="appt-btn" title="Notion" onclick="handleNotionBtn('+a.id+');event.stopPropagation()">N</button>'+
       '</div>'+
       '<div class="resize-handle" data-id="'+a.id+'"></div>';
     el.addEventListener('mousedown',onApptDrag);
@@ -1582,89 +1580,11 @@ function applyRepeat(apptData, sourceId){
   showTip('Herhaling ingepland','Afspraak herhaald t/m '+apptData.repeatUntil+'.','#1C829E');
 }
 
-/* === NOTION KOPPELING === */
-let notionConfig={apiKey:'',dbId:''};
-
-function openNotionSettings(){
-  const cfg=JSON.parse(localStorage.getItem('notionConfig')||'{}');
-  document.getElementById('notionApiKey').value=cfg.apiKey||'';
-  document.getElementById('notionDbId').value=cfg.dbId||'376564170fd280308e91cc49056fe3f6';
-  document.getElementById('notionSettingsOverlay').classList.add('open');
-}
-function saveNotionSettings(){
-  const key=document.getElementById('notionApiKey').value.trim();
-  const db=document.getElementById('notionDbId').value.trim();
-  if(!key||!db){alert('Vul beide velden in.');return;}
-  localStorage.setItem('notionConfig',JSON.stringify({apiKey:key,dbId:db}));
-  document.getElementById('notionSettingsOverlay').classList.remove('open');
-  showTip('Notion instellingen opgeslagen','Je kunt nu vergaderingen aanmaken in Notion.','#1C829E');
-}
-function handleNotionBtn(apptId){
-  const a=appointments.find(x=>x.id===apptId);if(!a)return;
-  if(a.notionUrl){openNotionPage(a.notionUrl);}else{openNotionModal(apptId);}
-}
-function openNotionModal(apptId){
-  const a=appointments.find(x=>x.id===apptId);if(!a)return;
-  const cfg=JSON.parse(localStorage.getItem('notionConfig')||'{}');
-  if(!cfg.apiKey){
-    openNotionSettings();
-    showTip('Notion instellen','Vul eerst je API token in en klik Opslaan.','#EB6334');
-    return;
-  }
-  createNotionPage(a,cfg);
-}
-
-async function createNotionPage(appt,cfg){
-  const date=curDate||isoToday();
-  const title=appt.title+' - '+date;
-  
-  const body={
-    parent:{database_id:cfg.dbId},
-    properties:{
-      Name:{title:[{text:{content:title}}]},
-      Datum:{date:{start:date}},
-      Locatie:{rich_text:[{text:{content:appt.loc||''}}]},
-      Type:{select:{name:appt.cat||'locatie'}}
-    },
-    children:[
-      {object:'block',type:'heading_2',heading_2:{rich_text:[{text:{content:'Voorbereiding'}}]}},
-      {object:'block',type:'paragraph',paragraph:{rich_text:[{text:{content:appt.note||'Vul hier je voorbereiding in...'}}]}},
-      {object:'block',type:'heading_2',heading_2:{rich_text:[{text:{content:'Verslag'}}]}},
-      {object:'block',type:'paragraph',paragraph:{rich_text:[{text:{content:'Vul hier je verslag in...'}}]}}
-    ]
-  };
-  
-  try{
-    const res=await fetch('https://api.notion.com/v1/pages',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+cfg.apiKey,'Content-Type':'application/json','Notion-Version':'2022-06-28'},
-      body:JSON.stringify(body)
-    });
-    const data=await res.json();
-    if(data.url){
-      // Sla Notion URL op bij afspraak
-      appt.notionUrl=data.url;
-      autoSave();
-      renderAgenda();
-      showTip('Notion pagina aangemaakt','<a href="'+data.url+'" target="_blank" style="color:white;text-decoration:underline">Open in Notion →</a>','#1C829E');
-    } else {
-      alert('Fout: '+JSON.stringify(data));
-    }
-  }catch(e){
-    alert('Notion fout: '+e.message);
-  }
-}
-
-function openNotionPage(url){
-  window.open(url,'_blank');
-}
-
 document.addEventListener('DOMContentLoaded',()=>{
   buildGrid();
   buildNameChips();
   const ar=document.getElementById('amRepeat');if(ar)ar.addEventListener('change',function(){document.getElementById('amRepeatEnd').style.display=this.value?'block':'none';});
   document.getElementById('apptModalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeApptModal();});
-  const nso=document.getElementById('notionSettingsOverlay');if(nso)nso.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   document.getElementById('btnPrev').addEventListener('click',()=>shiftDay(-1));
   document.getElementById('btnNext').addEventListener('click',()=>shiftDay(1));
   document.querySelectorAll('.month-tab[data-month]').forEach(btn=>{
@@ -1681,9 +1601,27 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Snelinvoer mailen: Enter of plakken voegt onderwerp(en) toe als afvinkbaar item
   const mq=document.getElementById('mailQuick');
   if(mq){
+    // Ruis die Outlook/Copilot meekopieert
+    const SKIP=/^(van|from|verzonden|sent|aan|to|cc|bcc|datum|date|onderwerp|subject|importance|urgentie|bijlagen?|attachments?|maak een samenvatting|summarize)/i;
+    // Herkent een naam in "Achternaam, Voorletters"-vorm, bijv. "Visser, D.A."
+    const NAAM=/^[A-Za-zÀ-ÿ'’\-]+(?:\s+(?:van|van der|van den|de|den|der|ter|te))?\s*,\s*[A-Za-zÀ-ÿ.\s'’\-]+$/;
+    // Probeert uit geplakte mailtekst onderwerp + afzender te halen
+    const parseMail=txt=>{
+      const lines=txt.split(/\r\n|\r|\n/).map(l=>l.trim());
+      const nonEmpty=lines.filter(l=>l);
+      if(nonEmpty.length<2)return null;            // te kort voor een mail
+      const onderwerp=nonEmpty[0];                 // eerste regel = onderwerp
+      const afzender=nonEmpty.find(l=>NAAM.test(l));// eerste naam-regel = afzender
+      if(!afzender)return null;                    // geen afzender herkend -> geen mail
+      const isMT=nonEmpty.some(l=>/^mt-belangrijk/i.test(l)||/\bMT-belangrijk\b/i.test(l));
+      return {text:afzender+' — '+onderwerp, mailcat:isMT?'mt':''};
+    };
     const addMailLines=txt=>{
+      const mail=parseMail(txt);
+      if(mail){addComm('mailen',mail.text,false,mail.mailcat);return 1;}
+      // anders: losse regels, ruis eruit, elk een eigen item
       let n=0;
-      txt.split(/\r\n|\r|\n/).forEach(line=>{const v=line.trim();if(v){addComm('mailen',v,false);n++;}});
+      txt.split(/\r\n|\r|\n/).map(l=>l.trim()).filter(l=>l&&!SKIP.test(l)).forEach(v=>{addComm('mailen',v,false);n++;});
       return n;
     };
     mq.addEventListener('keydown',e=>{
@@ -1786,19 +1724,5 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 </script>
 
-<div class="modal-overlay" id="notionSettingsOverlay" style="z-index:1001;">
-<div class="modal">
-  <h3>⚙ Notion Instellingen</h3>
-  <label>API Token</label>
-  <input type="password" id="notionApiKey" placeholder="secret_...">
-  <label>Database ID</label>
-  <input type="text" id="notionDbId" placeholder="32 tekens" value="376564170fd280308e91cc49056fe3f6">
-  <p style="font-size:10px;color:#9aabb5;margin-top:8px;">Je API token is veilig opgeslagen in je browser en wordt nooit verstuurd naar andere servers dan Notion.</p>
-  <div class="modal-btns">
-    <button class="mbtn-save" onclick="saveNotionSettings()">Opslaan</button>
-    <button class="mbtn-cancel" onclick="document.getElementById('notionSettingsOverlay').classList.remove('open')">Annuleer</button>
-  </div>
-</div>
-</div>
 </body>
 </html>
