@@ -205,19 +205,23 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .name-chip{font-family:'Barlow',sans-serif;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px;border:1.5px solid var(--border);background:white;color:#555;cursor:pointer;transition:all .12s;}
 .name-chip:hover{border-color:var(--blue);color:var(--blue);background:rgba(28,130,158,.06);}
 /* Categorie-labels mailen */
-.cat-chips{display:flex;flex-wrap:wrap;gap:3px;padding:3px 7px 1px;}
-.cat-chip{font-family:'Barlow',sans-serif;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;border:1.5px solid transparent;cursor:pointer;color:white;opacity:.55;transition:opacity .12s;}
-.cat-chip:hover{opacity:1;}
-.cat-chip.sel{opacity:1;box-shadow:0 0 0 1.5px rgba(0,0,0,.15) inset;}
-.cat-chip[data-cat="mt"]{background:#1C829E;}
-.cat-chip[data-cat="samenwerkingsverband"]{background:#008972;}
-.cat-chip[data-cat="leerplicht"]{background:#EB6334;}
-.cat-chip[data-cat="sociaalteam"]{background:#8B5CF6;}
 .c-mailcat{flex-shrink:0;margin-top:4px;font-size:7px;font-weight:700;color:white;border-radius:2px;padding:1px 4px;white-space:nowrap;cursor:pointer;user-select:none;text-transform:uppercase;letter-spacing:.3px;}
 .c-mailcat[data-cat="mt"]{background:#1C829E;}
 .c-mailcat[data-cat="samenwerkingsverband"]{background:#008972;}
 .c-mailcat[data-cat="leerplicht"]{background:#EB6334;}
-.c-mailcat[data-cat="sociaalteam"]{background:#8B5CF6;}
+.c-mailcat[data-cat="ouder"]{background:#006077;}
+.c-mailcat[data-cat="mentor"]{background:#d4a000;}
+/* Keuzemenu labels */
+.mailcat-menu{position:absolute;z-index:600;background:white;border:1.5px solid var(--border);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.16);padding:3px;min-width:150px;}
+.mailcat-opt{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;font-size:11px;font-weight:500;color:var(--text);cursor:pointer;}
+.mailcat-opt:hover{background:var(--grey);}
+.mailcat-opt.clr{color:#9aabb5;font-style:italic;border-top:1px solid var(--border);margin-top:2px;}
+.mailcat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.mailcat-dot[data-cat="mt"]{background:#1C829E;}
+.mailcat-dot[data-cat="samenwerkingsverband"]{background:#008972;}
+.mailcat-dot[data-cat="leerplicht"]{background:#EB6334;}
+.mailcat-dot[data-cat="ouder"]{background:#006077;}
+.mailcat-dot[data-cat="mentor"]{background:#d4a000;}
 /* Snelinvoer mailen */
 .mail-quick{font-family:'Barlow',sans-serif;font-size:11px;border:1.5px solid var(--border);border-radius:4px;padding:4px 8px;margin:2px 7px 4px;outline:none;color:var(--darkblue);background:rgba(36,96,96,.04);transition:border-color .15s;}
 .mail-quick:focus{border-color:var(--green);background:white;}
@@ -692,12 +696,13 @@ function addTask(prio,text='',done=false,rolledOver=false){
 let draggedComm=null;
 const TEAM_NAMES=['André','Serge','Carolien','Bas','Michelle','Perry','Linda'];
 const MAIL_CATS=[
-  {key:'mt',label:'MT'},
-  {key:'samenwerkingsverband',label:'SWV'},
-  {key:'leerplicht',label:'Leerplicht'},
-  {key:'sociaalteam',label:'Sociaal team'},
+  {key:'mt',label:'MT',short:'MT'},
+  {key:'samenwerkingsverband',label:'Samenwerkingsverband',short:'SWV'},
+  {key:'leerplicht',label:'Leerplicht',short:'Leerplicht'},
+  {key:'ouder',label:'Ouder',short:'Ouder'},
+  {key:'mentor',label:'Mentor',short:'Mentor'},
 ];
-const MAIL_CAT_FULL={mt:'MT',samenwerkingsverband:'Samenwerkingsverband',leerplicht:'Leerplicht',sociaalteam:'Sociaal team'};
+const MAIL_CAT_SHORT=Object.fromEntries(MAIL_CATS.map(c=>[c.key,c.short]));
 function buildNameChips(){
   ['bespreken'].forEach(type=>{
     const box=document.getElementById('names-'+type);if(!box||box.children.length)return;
@@ -714,14 +719,14 @@ function setMailCat(item,cat){
   const cb=item.querySelector('.c-cb');
   if(!badge){
     badge=document.createElement('span');badge.className='c-mailcat';
-    badge.onclick=()=>cycleMailCat(item);
+    badge.onclick=e=>{e.stopPropagation();openMailCatMenu(item,badge);};
     item.insertBefore(badge,cb.nextSibling);
   }
   if(cat){
     badge.style.cssText='';
     badge.dataset.cat=cat;
     badge.title='Klik om categorie te wijzigen';
-    badge.textContent=({mt:'MT',samenwerkingsverband:'SWV',leerplicht:'Leerplicht',sociaalteam:'Soc. team'})[cat]||cat;
+    badge.textContent=MAIL_CAT_SHORT[cat]||cat;
     item.dataset.mailcat=cat;
   } else {
     // terug naar grijs plus-knopje
@@ -733,13 +738,29 @@ function setMailCat(item,cat){
   }
   autoSave();
 }
-// Doorklikken: geen -> mt -> swv -> leerplicht -> sociaal team -> geen
-function cycleMailCat(item){
-  const order=['','mt','samenwerkingsverband','leerplicht','sociaalteam'];
-  const cur=item.dataset.mailcat||'';
-  const next=order[(order.indexOf(cur)+1)%order.length];
-  setMailCat(item,next);
+// Keuzemenu met alle labels; één klik om te kiezen
+function openMailCatMenu(item,anchor){
+  closeMailCatMenu();
+  const menu=document.createElement('div');menu.className='mailcat-menu';menu.id='mailcatMenu';
+  MAIL_CATS.forEach(c=>{
+    const o=document.createElement('div');o.className='mailcat-opt';o.dataset.cat=c.key;
+    const dot=document.createElement('span');dot.className='mailcat-dot';dot.dataset.cat=c.key;
+    const lbl=document.createElement('span');lbl.textContent=c.label;
+    o.append(dot,lbl);
+    o.onclick=e=>{e.stopPropagation();setMailCat(item,c.key);closeMailCatMenu();};
+    menu.appendChild(o);
+  });
+  // optie om het label te verwijderen
+  const clr=document.createElement('div');clr.className='mailcat-opt clr';clr.textContent='Geen label';
+  clr.onclick=e=>{e.stopPropagation();setMailCat(item,'');closeMailCatMenu();};
+  menu.appendChild(clr);
+  document.body.appendChild(menu);
+  const r=anchor.getBoundingClientRect();
+  menu.style.top=(r.bottom+window.scrollY+2)+'px';
+  menu.style.left=(r.left+window.scrollX)+'px';
 }
+function closeMailCatMenu(){const m=document.getElementById('mailcatMenu');if(m)m.remove();}
+document.addEventListener('click',closeMailCatMenu);
 function addComm(type,text='',done=false,mailcat=''){
   const list=document.getElementById('cl-'+type);
   const item=document.createElement('div');item.className='comm-item';item.dataset.type=type;
@@ -760,7 +781,7 @@ function addComm(type,text='',done=false,mailcat=''){
     else{
       // grijs plus-knopje om een categorie te kiezen
       const add=document.createElement('span');add.className='c-mailcat';add.style.cssText='background:#c8d4db;color:#fff;';add.textContent='+ label';add.title='Categorie toevoegen';
-      add.onclick=()=>cycleMailCat(item);
+      add.onclick=e=>{e.stopPropagation();openMailCatMenu(item,add);};
       item.insertBefore(add,cb.nextSibling);
     }
   }
@@ -1510,7 +1531,7 @@ function selectAcat(btn){document.querySelectorAll('.acat-btn').forEach(b=>b.cla
 function getNextWorkday(iso){
   const d=new Date(iso+'T00:00:00');
   do{d.setDate(d.getDate()+1);}while(d.getDay()===0||d.getDay()===6);
-  return d.toISOString().slice(0,10);
+  return toISO(d.getFullYear(),d.getMonth(),d.getDate());
 }
 function rolloverTasks(fromDate){
   if(fromDate>isoToday())return;
@@ -1562,7 +1583,7 @@ function applyRepeat(apptData, sourceId){
     }
     if(d>until)break;
     
-    const iso=d.toISOString().slice(0,10);
+    const iso=toISO(d.getFullYear(),d.getMonth(),d.getDate());
     const targetMonth=d.getMonth();
     if(!MONTHS.includes(targetMonth))continue;
     
