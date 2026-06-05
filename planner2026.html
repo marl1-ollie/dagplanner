@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v20260604-clean -->
+<!-- v20260605-mailquick -->
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -195,6 +195,33 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .c-txt{flex:1;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:11.5px;color:var(--text);padding:2px 0;background:transparent;resize:none;line-height:1.4;overflow:hidden;min-height:18px;}
 .c-txt::placeholder{color:#c8d4db;font-style:italic;}
 .c-txt.done{text-decoration:line-through;color:#aab5bb;}
+.c-grip{flex-shrink:0;width:12px;margin-top:3px;color:#c8d4db;font-size:11px;cursor:grab;user-select:none;line-height:1;opacity:0;transition:opacity .15s;}
+.comm-item:hover .c-grip{opacity:1;}
+.c-grip:active{cursor:grabbing;}
+.comm-item.comm-dragging{opacity:.5;background:rgba(36,96,96,.06);border-radius:4px;}
+.comm-list.drop-over{background:rgba(36,96,96,.06);outline:1.5px dashed var(--green);outline-offset:-2px;border-radius:4px;}
+/* Naam-chips */
+.name-chips{display:flex;flex-wrap:wrap;gap:3px;padding:3px 7px 1px;}
+.name-chip{font-family:'Barlow',sans-serif;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px;border:1.5px solid var(--border);background:white;color:#555;cursor:pointer;transition:all .12s;}
+.name-chip:hover{border-color:var(--blue);color:var(--blue);background:rgba(28,130,158,.06);}
+/* Categorie-labels mailen */
+.cat-chips{display:flex;flex-wrap:wrap;gap:3px;padding:3px 7px 1px;}
+.cat-chip{font-family:'Barlow',sans-serif;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;border:1.5px solid transparent;cursor:pointer;color:white;opacity:.55;transition:opacity .12s;}
+.cat-chip:hover{opacity:1;}
+.cat-chip.sel{opacity:1;box-shadow:0 0 0 1.5px rgba(0,0,0,.15) inset;}
+.cat-chip[data-cat="mt"]{background:#1C829E;}
+.cat-chip[data-cat="samenwerkingsverband"]{background:#008972;}
+.cat-chip[data-cat="leerplicht"]{background:#EB6334;}
+.cat-chip[data-cat="sociaalteam"]{background:#8B5CF6;}
+.c-mailcat{flex-shrink:0;margin-top:4px;font-size:7px;font-weight:700;color:white;border-radius:2px;padding:1px 4px;white-space:nowrap;cursor:pointer;user-select:none;text-transform:uppercase;letter-spacing:.3px;}
+.c-mailcat[data-cat="mt"]{background:#1C829E;}
+.c-mailcat[data-cat="samenwerkingsverband"]{background:#008972;}
+.c-mailcat[data-cat="leerplicht"]{background:#EB6334;}
+.c-mailcat[data-cat="sociaalteam"]{background:#8B5CF6;}
+/* Snelinvoer mailen */
+.mail-quick{font-family:'Barlow',sans-serif;font-size:11px;border:1.5px solid var(--border);border-radius:4px;padding:4px 8px;margin:2px 7px 4px;outline:none;color:var(--darkblue);background:rgba(36,96,96,.04);transition:border-color .15s;}
+.mail-quick:focus{border-color:var(--green);background:white;}
+.mail-quick::placeholder{color:#9aabb5;font-style:italic;}
 .notes-sec{flex:1;display:flex;flex-direction:column;}
 .notes-hdr{background:var(--darkblue);color:white;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;}
 .notes-area{flex:1;width:100%;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--text);padding:5px 9px;resize:none;min-height:60px;line-height:1.5;background:transparent;}
@@ -207,7 +234,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .intent-lbl{font-size:8px;color:#9aabb5;font-weight:700;letter-spacing:.8px;text-transform:uppercase;display:block;margin-bottom:1px;}
 .intent-inp{font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--darkblue);font-weight:500;border:none;border-bottom:1px dashed var(--border);outline:none;text-align:center;background:transparent;width:170px;padding:1px 4px;}
 .intent-inp::placeholder{color:#c8d4db;font-style:italic;font-weight:400;}
-@media print{body{background:white;}.topnav,.hours-bar,.month-panel{display:none;}.page-wrap{padding:0;}.page{box-shadow:none;}.picker{display:none!important;}.cat-tag{display:inline-block!important;}.add-btn,.w-dot{display:none!important;}@page{size:A4 portrait;margin:0;}}
+@media print{body{background:white;}.topnav,.hours-bar,.month-panel{display:none;}.page-wrap{padding:0;}.page{box-shadow:none;}.picker{display:none!important;}.cat-tag{display:inline-block!important;}.add-btn,.w-dot,.mail-quick,.c-grip,.name-chips{display:none!important;}@page{size:A4 portrait;margin:0;}}
 
 /* === AGENDA VIEW === */
 .agenda-container { display: flex; gap: 0; position: relative; }
@@ -371,9 +398,9 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
       <div class="task-sec prio-h"><div class="task-hdr"><div class="t-badge">!</div>Hoge prioriteit</div><div class="task-list" id="tl-hoog"></div><button class="add-btn add-task-btn" onclick="addTask('hoog')">+ Taak</button></div>
       <div class="task-sec prio-m"><div class="task-hdr"><div class="t-badge">2</div>Middel prioriteit</div><div class="task-list" id="tl-midden"></div><button class="add-btn add-task-btn" onclick="addTask('midden')">+ Taak</button></div>
       <div class="task-sec prio-l"><div class="task-hdr"><div class="t-badge">3</div>Lage prioriteit</div><div class="task-list" id="tl-laag"></div><button class="add-btn add-task-btn" onclick="addTask('laag')">+ Taak</button></div>
-      <div class="comm-sec comm-bellen"><div class="comm-hdr">Bellen</div><div class="comm-list" id="cl-bellen"></div><button class="add-btn" style="color:#5573a0" onclick="addComm('bellen')">+ Toevoegen</button></div>
-      <div class="comm-sec comm-mailen"><div class="comm-hdr">Mailen</div><div class="comm-list" id="cl-mailen"></div><button class="add-btn" style="color:#246060" onclick="addComm('mailen')">+ Toevoegen</button></div>
-      <div class="comm-sec comm-bespreken"><div class="comm-hdr">Bespreken</div><div class="comm-list" id="cl-bespreken"></div><button class="add-btn" style="color:#70508a" onclick="addComm('bespreken')">+ Toevoegen</button></div>
+      <div class="comm-sec comm-bellen"><div class="comm-hdr">Bellen</div><div class="name-chips" id="names-bellen"></div><div class="comm-list" id="cl-bellen"></div><button class="add-btn" style="color:#5573a0" onclick="addComm('bellen')">+ Toevoegen</button></div>
+      <div class="comm-sec comm-mailen"><div class="comm-hdr">Mailen</div><input class="mail-quick" id="mailQuick" placeholder="Mail-onderwerp + Enter"><div class="comm-list" id="cl-mailen"></div><button class="add-btn" style="color:#246060" onclick="addComm('mailen')">+ Toevoegen</button></div>
+      <div class="comm-sec comm-bespreken"><div class="comm-hdr">Bespreken</div><div class="name-chips" id="names-bespreken"></div><div class="comm-list" id="cl-bespreken"></div><button class="add-btn" style="color:#70508a" onclick="addComm('bespreken')">+ Toevoegen</button></div>
       <div class="notes-sec"><div class="notes-hdr">Notities</div><textarea class="notes-area" id="notesArea" placeholder="Aantekeningen, follow-ups..."></textarea></div>
     </div>
   </div>
@@ -420,12 +447,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 <button class="mbtn-cancel" onclick="closeApptModal()">Annuleer</button>
 </div></div></div>
 <script>
-document.getElementById('amRepeat').addEventListener('change',function(){
-  document.getElementById('amRepeatEnd').style.display=this.value?'block':'none';
-});
 
-// Modal close handlers
-document.getElementById('apptModalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeApptModal();});
 const YEAR=2026,MONTHS=[4,5,6];
 const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const MONTHS_NL=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
@@ -668,18 +690,94 @@ function addTask(prio,text='',done=false,rolledOver=false){
   if(!text)setTimeout(()=>ta.focus(),50);
   autoSave();
 }
-function addComm(type,text='',done=false){
+let draggedComm=null;
+const TEAM_NAMES=['André','Serge','Carolien','Bas','Michelle','Perry','Linda'];
+const MAIL_CATS=[
+  {key:'mt',label:'MT'},
+  {key:'samenwerkingsverband',label:'SWV'},
+  {key:'leerplicht',label:'Leerplicht'},
+  {key:'sociaalteam',label:'Sociaal team'},
+];
+const MAIL_CAT_FULL={mt:'MT',samenwerkingsverband:'Samenwerkingsverband',leerplicht:'Leerplicht',sociaalteam:'Sociaal team'};
+function buildNameChips(){
+  ['bellen','bespreken'].forEach(type=>{
+    const box=document.getElementById('names-'+type);if(!box||box.children.length)return;
+    TEAM_NAMES.forEach(name=>{
+      const b=document.createElement('button');b.className='name-chip';b.textContent=name;
+      b.onclick=()=>{addComm(type,name+': ',false);};
+      box.appendChild(b);
+    });
+  });
+}
+// Categorie-label op een mailitem zetten/wisselen
+function setMailCat(item,cat){
+  let badge=item.querySelector('.c-mailcat');
+  const cb=item.querySelector('.c-cb');
+  if(!badge){
+    badge=document.createElement('span');badge.className='c-mailcat';
+    badge.onclick=()=>cycleMailCat(item);
+    item.insertBefore(badge,cb.nextSibling);
+  }
+  if(cat){
+    badge.style.cssText='';
+    badge.dataset.cat=cat;
+    badge.title='Klik om categorie te wijzigen';
+    badge.textContent=({mt:'MT',samenwerkingsverband:'SWV',leerplicht:'Leerplicht',sociaalteam:'Soc. team'})[cat]||cat;
+    item.dataset.mailcat=cat;
+  } else {
+    // terug naar grijs plus-knopje
+    delete badge.dataset.cat;
+    badge.style.cssText='background:#c8d4db;color:#fff;';
+    badge.title='Categorie toevoegen';
+    badge.textContent='+ label';
+    delete item.dataset.mailcat;
+  }
+  autoSave();
+}
+// Doorklikken: geen -> mt -> swv -> leerplicht -> sociaal team -> geen
+function cycleMailCat(item){
+  const order=['','mt','samenwerkingsverband','leerplicht','sociaalteam'];
+  const cur=item.dataset.mailcat||'';
+  const next=order[(order.indexOf(cur)+1)%order.length];
+  setMailCat(item,next);
+}
+function addComm(type,text='',done=false,mailcat=''){
   const list=document.getElementById('cl-'+type);
-  const item=document.createElement('div');item.className='comm-item';
+  const item=document.createElement('div');item.className='comm-item';item.dataset.type=type;
+  const grip=document.createElement('span');grip.className='c-grip';grip.textContent='\u283F';grip.title='Sleep naar een andere lijst of positie';
   const cb=document.createElement('input');cb.type='checkbox';cb.className='c-cb';cb.checked=done;
   const ta=document.createElement('textarea');ta.className='c-txt'+(done?' done':'');ta.rows=1;ta.value=text;
   const ph={bellen:'Naam / nummer...',mailen:'Naam / onderwerp...',bespreken:'Wie / onderwerp...'};ta.placeholder=ph[type]||'...';
   cb.onchange=()=>{ta.classList.toggle('done',cb.checked);autoSave();};
   ta.oninput=function(){this.style.height='auto';this.style.height=Math.max(16,this.scrollHeight)+'px';autoSave();};
   ta.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addComm(type);setTimeout(()=>{const its=list.querySelectorAll('.c-txt');its[its.length-1].focus();},50);}};
-  item.append(cb,ta);list.appendChild(item);
+  // Slepen via de greep, zodat de tekst gewoon bewerkbaar blijft
+  grip.addEventListener('mousedown',()=>{item.draggable=true;});
+  item.addEventListener('dragstart',e=>{draggedComm=item;item.classList.add('comm-dragging');e.dataTransfer.effectAllowed='move';});
+  item.addEventListener('dragend',()=>{item.classList.remove('comm-dragging');item.draggable=false;draggedComm=null;document.querySelectorAll('.comm-list.drop-over').forEach(l=>l.classList.remove('drop-over'));autoSave();});
+  item.append(grip,cb,ta);
+  if(type==='mailen'){
+    if(mailcat){setMailCat(item,mailcat);}
+    else{
+      // grijs plus-knopje om een categorie te kiezen
+      const add=document.createElement('span');add.className='c-mailcat';add.style.cssText='background:#c8d4db;color:#fff;';add.textContent='+ label';add.title='Categorie toevoegen';
+      add.onclick=()=>cycleMailCat(item);
+      item.insertBefore(add,cb.nextSibling);
+    }
+  }
+  list.appendChild(item);
   if(!text)setTimeout(()=>ta.focus(),50);
   autoSave();
+}
+// Bepaalt na welk item de gesleepte rij moet komen, op basis van muispositie
+function commDropTarget(list,y){
+  const items=[...list.querySelectorAll('.comm-item:not(.comm-dragging)')];
+  return items.reduce((closest,child)=>{
+    const box=child.getBoundingClientRect();
+    const offset=y-box.top-box.height/2;
+    if(offset<0&&offset>closest.offset)return{offset,el:child};
+    return closest;
+  },{offset:-Infinity,el:null}).el;
 }
 function setMood(btn){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');autoSave();}
 const CHIP_COLORS={vrij:'#008972',vakantie:'#1C829E',studiedag:'#d4a000',ziek:'#EB6334',verjaardag:'#8B5CF6'};
@@ -796,7 +894,7 @@ function saveDay(){
     slots[b.dataset.time]={val:ta?ta.value:'',cat:b.dataset.cat||'',worked:b.classList.contains('worked'),endtime:b.dataset.endtime||'',continuationOf:b.dataset.continuationOf||'',rrfreq:b.dataset.rrfreq||'',rrendtype:b.dataset.rrendtype||'',rrcount:b.dataset.rrcount||'',rruntil:b.dataset.rruntil||'',location:b.dataset.location||''};
   });
   ['hoog','midden','laag'].forEach(p=>{tasks[p]=[];document.querySelectorAll('#tl-'+p+' .task-item').forEach(it=>{tasks[p].push({text:it.querySelector('.t-txt').value,done:it.querySelector('.t-cb').checked});});});
-  ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked});});});
+  ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked,mailcat:it.dataset.mailcat||''});});});
   const am=document.querySelector('.mood-btn.on');
   const banner=getBannerData();
   const obj={
@@ -916,7 +1014,7 @@ function loadDay(dateStr){
         if(s.rrfreq){b.dataset.rrfreq=s.rrfreq;b.dataset.rrendtype=s.rrendtype||'count';b.dataset.rrcount=s.rrcount||'10';b.dataset.rruntil=s.rruntil||'';rrBadge(b,s.rrfreq);}
         if(s.location){b.dataset.location=s.location;let lb=b.querySelector('.loc-badge');if(!lb){lb=document.createElement('span');lb.className='loc-badge';b.appendChild(lb);}lb.textContent=s.location;}
       });
-      const ll=(items,fn,id,min)=>{(items||[]).forEach(it=>fn(id,it.text,it.done));for(let i=(items||[]).length;i<min;i++)fn(id,'');};
+      const ll=(items,fn,id,min)=>{(items||[]).forEach(it=>fn(id,it.text,it.done,it.mailcat||''));for(let i=(items||[]).length;i<min;i++)fn(id,'');};
       if(d.appointments&&Array.isArray(d.appointments)){appointments=d.appointments;apptNextId=Math.max(1,...(appointments.length?appointments.map(a=>a.id+1):[1]));}
       if(d.tasks)['hoog','midden','laag'].forEach(p=>{(d.tasks[p]||[]).forEach(t=>addTask(p,t.text||'',t.done||false,!t.done&&t.rolledOver));for(let i=(d.tasks[p]||[]).length;i<2;i++)addTask(p,'');});
       else['hoog','midden','laag'].forEach(p=>{for(let i=0;i<2;i++)addTask(p,'');});
@@ -1563,6 +1661,10 @@ function openNotionPage(url){
 
 document.addEventListener('DOMContentLoaded',()=>{
   buildGrid();
+  buildNameChips();
+  const ar=document.getElementById('amRepeat');if(ar)ar.addEventListener('change',function(){document.getElementById('amRepeatEnd').style.display=this.value?'block':'none';});
+  document.getElementById('apptModalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeApptModal();});
+  const nso=document.getElementById('notionSettingsOverlay');if(nso)nso.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   document.getElementById('btnPrev').addEventListener('click',()=>shiftDay(-1));
   document.getElementById('btnNext').addEventListener('click',()=>shiftDay(1));
   document.querySelectorAll('.month-tab[data-month]').forEach(btn=>{
@@ -1576,6 +1678,55 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('btnSync').addEventListener('click',()=>manualSync());
   document.getElementById('btnClear').addEventListener('click',()=>clearCurDay());
   document.getElementById('btnReset').addEventListener('click',()=>fullReset());
+  // Snelinvoer mailen: Enter of plakken voegt onderwerp(en) toe als afvinkbaar item
+  const mq=document.getElementById('mailQuick');
+  if(mq){
+    const addMailLines=txt=>{
+      let n=0;
+      txt.split(/\r\n|\r|\n/).forEach(line=>{const v=line.trim();if(v){addComm('mailen',v,false);n++;}});
+      return n;
+    };
+    mq.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        if(addMailLines(mq.value))mq.value='';
+      }
+    });
+    mq.addEventListener('paste',e=>{
+      const txt=(e.clipboardData||window.clipboardData).getData('text');
+      if(txt){e.preventDefault();if(addMailLines(txt))mq.value='';}
+    });
+  }
+  // Slepen tussen/binnen de bellen-, mailen- en bespreken-lijsten
+  ['bellen','mailen','bespreken'].forEach(type=>{
+    const list=document.getElementById('cl-'+type);
+    if(!list)return;
+    list.addEventListener('dragover',e=>{
+      if(!draggedComm)return;
+      e.preventDefault();list.classList.add('drop-over');
+      const after=commDropTarget(list,e.clientY);
+      if(after)list.insertBefore(draggedComm,after);else list.appendChild(draggedComm);
+    });
+    list.addEventListener('dragleave',e=>{if(e.target===list)list.classList.remove('drop-over');});
+    list.addEventListener('drop',e=>{
+      if(!draggedComm)return;
+      e.preventDefault();list.classList.remove('drop-over');
+      const oldType=draggedComm.dataset.type;
+      draggedComm.dataset.type=type;
+      const ta=draggedComm.querySelector('.c-txt');
+      const ph={bellen:'Naam / nummer...',mailen:'Naam / onderwerp...',bespreken:'Wie / onderwerp...'};
+      if(ta)ta.placeholder=ph[type]||'...';
+      const badge=draggedComm.querySelector('.c-mailcat');
+      if(type==='mailen'&&oldType!=='mailen'){
+        // krijgt label-knopje in mailen
+        if(!badge)setMailCat(draggedComm,'');
+      } else if(type!=='mailen'&&badge){
+        // label hoort alleen bij mailen
+        badge.remove();delete draggedComm.dataset.mailcat;
+      }
+      autoSave();
+    });
+  });
   document.querySelectorAll('.day-chip').forEach(btn=>{
     btn.addEventListener('click',()=>toggleChip(btn));
   });
