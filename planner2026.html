@@ -885,6 +885,19 @@ async function manualSync(){
   if(count>0){if(curDate){loadDay(curDate);updateHours();}showTip('Gesynchroniseerd',`${count} dag(en) opgehaald.`,'#008972');}
   else showTip('Niets gevonden','Geen nieuwe data of geen verbinding.','#EB6334');
 }
+// Verwijdert lege bel/mail/bespreek-items, maar laat het item met focus en het laatste lege item per lijst staan
+function pruneEmptyComms(){
+  ['bellen','mailen','bespreken'].forEach(t=>{
+    const items=[...document.querySelectorAll('#cl-'+t+' .comm-item')];
+    const leeg=items.filter(it=>{
+      const ta=it.querySelector('.c-txt');
+      return ta&&!ta.value.trim()&&document.activeElement!==ta;
+    });
+    // hou er minstens één leeg item over zodat de lijst niet helemaal dichtklapt
+    const teVerwijderen= (items.length-leeg.length===0) ? leeg.slice(1) : leeg;
+    teVerwijderen.forEach(it=>it.remove());
+  });
+}
 function saveDay(){
   if(!curDate)return;
   const slots={},tasks={},comms={};
@@ -1028,12 +1041,14 @@ function loadDay(dateStr){
   }
   applyFixed(dateStr);
   updateHours();
+  // ruim bestaande lege rommel op uit eerder opgeslagen dagen
+  setTimeout(pruneEmptyComms,0);
 }
 function selectDay(dateStr){
   try{
     clearTimeout(window._st);
     if(curDate&&curDate!==dateStr&&dateStr>curDate)rolloverTasks(curDate);
-    if(curDate)saveDay();
+    if(curDate){pruneEmptyComms();saveDay();}
     curDate=dateStr;
     const d=pd(dateStr);curMonth=d.getMonth();
     document.getElementById('dayLabel').textContent=`${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
@@ -1706,6 +1721,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
   let dp=null;
+  window.addEventListener('beforeunload',()=>{if(curDate){pruneEmptyComms();saveDay();}});
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const b=document.getElementById('installBanner');if(b)b.style.display='flex';});
   window.addEventListener('appinstalled',()=>{dp=null;const b=document.getElementById('installBanner');if(b)b.style.display='none';});
   const ib=document.getElementById('installBtn');
