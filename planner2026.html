@@ -423,12 +423,9 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 document.getElementById('amRepeat').addEventListener('change',function(){
   document.getElementById('amRepeatEnd').style.display=this.value?'block':'none';
 });
-</script>
-<script>document.getElementById('apptModalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeApptModal();});
-document.getElementById('notionSettingsOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});</script>
-<script>
 
-
+// Modal close handlers
+document.getElementById('apptModalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeApptModal();});
 const YEAR=2026,MONTHS=[4,5,6];
 const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const MONTHS_NL=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
@@ -1294,7 +1291,7 @@ function renderAgenda(){
       '<div class="appt-btns">'+
       '<button class="appt-btn" title="Bewerken" onclick="openApptModal('+a.id+');event.stopPropagation()">✏</button>'+
       '<button class="appt-btn" title="Doorsturen" onclick="forwardAppt('+a.id+');event.stopPropagation()">→</button>'+
-      (a.notionUrl?'<button class="appt-btn" title="Open in Notion" onclick="openNotionPage(''+a.notionUrl+'');event.stopPropagation()" style="background:#000;color:#fff">N</button>':'<button class="appt-btn" title="Maak Notion pagina" onclick="openNotionModal('+a.id+');event.stopPropagation()" style="background:#f0f0f0">N</button>')+
+      '<button class="appt-btn" title="Notion" onclick="handleNotionBtn('+a.id+');event.stopPropagation()">N</button>'+
       '</div>'+
       '<div class="resize-handle" data-id="'+a.id+'"></div>';
     el.addEventListener('mousedown',onApptDrag);
@@ -1503,6 +1500,10 @@ function saveNotionSettings(){
   localStorage.setItem('notionConfig',JSON.stringify({apiKey:key,dbId:db}));
   document.getElementById('notionSettingsOverlay').classList.remove('open');
   showTip('Notion instellingen opgeslagen','Je kunt nu vergaderingen aanmaken in Notion.','#1C829E');
+}
+function handleNotionBtn(apptId){
+  const a=appointments.find(x=>x.id===apptId);if(!a)return;
+  if(a.notionUrl){openNotionPage(a.notionUrl);}else{openNotionModal(apptId);}
 }
 function openNotionModal(apptId){
   const a=appointments.find(x=>x.id===apptId);if(!a)return;
