@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-
+ 
 :root{--blue:#1C829E;--orange:#EB6334;--green:#008972;--yellow:#FDCE43;--darkblue:#006077;--grey:#F2F2F2;--text:#1a1a1a;--border:#dde3e7;--c-locatie:#1C829E;--c-extern:#EB6334;--c-online:#008972;--c-admin:#d4a000;--c-telefoon:#8B5CF6;--c-reistijd:#E07B39;--c-pauze:#8fa8b8;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-height:100vh;}
@@ -49,7 +49,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .h-label{font-size:10px;color:#7a9aaa;font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
 .h-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--darkblue);}
 .h-div{width:1px;height:20px;background:var(--border);}
-.time-picker{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--darkblue);border:none;border-bottom:1.5px dashed var(--border);outline:none;background:transparent;width:52px;text-align:center;}
+.time-picker{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--darkblue);border:none;border-bottom:1.5px dashed var(--border);outline:none;background:transparent;width:74px;text-align:center;}
 /* Dagbanner */
 .day-banner{display:flex;align-items:center;gap:8px;background:white;border-bottom:2px solid var(--border);padding:5px 16px;flex-wrap:wrap;}
 .day-banner-label{font-size:9px;color:#9aabb5;font-weight:700;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;}
@@ -208,7 +208,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .intent-inp{font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--darkblue);font-weight:500;border:none;border-bottom:1px dashed var(--border);outline:none;text-align:center;background:transparent;width:170px;padding:1px 4px;}
 .intent-inp::placeholder{color:#c8d4db;font-style:italic;font-weight:400;}
 @media print{body{background:white;}.topnav,.hours-bar,.month-panel{display:none;}.page-wrap{padding:0;}.page{box-shadow:none;}.picker{display:none!important;}.cat-tag{display:inline-block!important;}.add-btn,.w-dot{display:none!important;}@page{size:A4 portrait;margin:0;}}
-
+ 
 /* === AGENDA VIEW === */
 .agenda-container { display: flex; gap: 0; position: relative; }
 .agenda-time-col { width: 48px; flex-shrink: 0; position: relative; }
@@ -277,7 +277,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .acat-btn[data-cat="pauze"].active { background: #8fa8b8; }
 .agenda-hint { font-size: 9px; color: #9aabb5; margin-left: auto; }
 @media print { .topnav,.hours-bar,.month-panel,.agenda-toolbar { display:none; } .page-wrap { padding:0; } .page { box-shadow:none; } .appt-btns,.resize-handle { display:none!important; } }
-
+ 
 </style>
 </head>
 <body>
@@ -317,7 +317,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
     <button class="btn btn-reset"   id="btnReset">&#8635; Reset alles</button>
   </div>
 </div>
-
+ 
 <div class="hours-bar">
   <span class="h-label">Start</span>
   <input class="time-picker" id="wStart" type="time" value="08:00" onchange="autoSave()">
@@ -331,7 +331,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
   <div class="h-div"></div>
   <span class="h-label">Maand</span><span class="h-val" id="hMonth">0u</span>
 </div>
-
+ 
 <div class="day-banner">
   <span class="day-banner-label">Dag</span>
   <div class="day-banner-chips">
@@ -343,7 +343,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
   </div>
   <input class="day-banner-inp" id="dayBannerInp" placeholder="Of typ zelf iets, bijv. teamuitje, examendag..." oninput="autoSave()">
 </div>
-
+ 
 <div class="page-wrap">
 <div class="month-panel">
   <div class="mpanel-hdr"><span class="mpanel-title" id="mTitle">&#8211;</span><span class="mpanel-total" id="mTotal">&#8211;</span></div>
@@ -397,7 +397,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
   </div>
 </div>
 </div>
-
+ 
 <div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--darkblue);color:white;padding:12px 16px;align-items:center;gap:10px;box-shadow:0 -4px 16px rgba(0,0,0,.2);">
   <div style="flex:1;"><div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;">Installeer als app</div><div style="font-size:11px;opacity:.75;">Zet de dagplanner op je beginscherm</div></div>
   <button id="installBtn" style="font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;background:var(--orange);color:white;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;">Installeren</button>
@@ -429,10 +429,11 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 <button class="mbtn-cancel" onclick="closeApptModal()">Annuleer</button>
 </div></div></div>
 <script>
-
+ 
 const YEAR=2026,YEAR2=2027,START_MONTH=7,END_MONTH=6;
 const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const MONTHS_NL=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const MONTHS=[7,8,9,10,11,0,1,2,3,4,5,6];
 const CATS=[
   {key:'locatie',label:'Overleg op locatie',short:'Locatie',color:'#1C829E'},
   {key:'extern', label:'Overleg extern',    short:'Extern', color:'#EB6334'},
@@ -442,7 +443,7 @@ const CATS=[
   {key:'reistijd',label:'Reistijd',           short:'Reis', color:'#E07B39'},
   {key:'pauze',  label:'Pauze',               short:'Pauze',color:'#8fa8b8'},
 ];
-const WL={1:'Schoonhoven (WZ)',2:'Schoonhoven (WZ)',3:'Utrecht - BiOND',4:'Schoonhoven (WZ)',5:'Schoonhoven (WZ, vm)'};
+const WL={1:'Schoonhoven (WZ)',2:'Schoonhoven (WZ)',3:'Schoonhoven (WZ)',4:'Schoonhoven (WZ)',5:'Schoonhoven (WZ, vm)'};
 const SCHOOL_FREE = {
   '2026-05-25': {label:'Pinksterdag', color:'#e8f5e9', type:'feestdag'},
   '2026-07-13': {label:'Roostervrij', color:'#fff8e1', type:'roostervrij'},
@@ -510,7 +511,7 @@ function buildGrid(){
   setInterval(()=>{const nl=grid&&grid.querySelector('.now-line');if(nl)nl.remove();renderAgenda();},60000);
   renderAgenda();
 }
-
+ 
 function makePicker(row,ct){
   const p=document.createElement('div');p.className='picker';
   p.onclick=e=>e.stopPropagation();
@@ -868,25 +869,13 @@ function applyFixed(dateStr){
     const page=document.querySelector('.page');
     if(page) page.style.background='white';
   }
-  if([1,2,4,5].includes(dow)){
+  if([1,2,3,4,5].includes(dow)){
     applyS('10:30','Pauze (20 min.)','pauze');applyS('10:45','','pauze');
     applyS('12:10','Pauze (30 min.)','pauze');applyS('12:15','','pauze');applyS('12:25','','pauze');applyS('12:30','','pauze');
     applyS('14:00','Pauze (10 min.)','pauze');
   }
   if(dow===2){['09:15','09:30','09:45','10:00','10:15'].forEach(t=>applyS(t,'IZO - intern zorgoverleg','locatie'));}
   if(dow===5){['11:00','11:15','11:30','11:45'].forEach(t=>applyS(t,'Weekplanning maken','admin'));}
-  if(dow===3){
-    applyS('07:30','Reistijd - Schoonhoven naar Utrecht Mariaplaats (BiOND, 45 min)','reistijd');
-    applyS('07:45','Reistijd - onderweg naar Utrecht','reistijd');
-    applyS('08:00','Reistijd - onderweg naar Utrecht','reistijd');
-    applyS('08:15','Aankomst BiOND - Mariaplaats Utrecht','reistijd');
-    applyS('17:00','Reistijd - Utrecht Mariaplaats naar Schoonhoven (45 min)','reistijd');
-    applyS('17:15','Reistijd - onderweg terug','reistijd');
-    applyS('17:30','Reistijd - onderweg terug','reistijd');
-    applyS('17:45','Aankomst Schoonhoven','reistijd');
-    const na=document.getElementById('notesArea');
-    if(!na.value)na.value='BiOND - Mariaplaats, Utrecht\nRijroute: Schoonhoven > A12 > Utrecht Centrum > Mariaplaats';
-  }
   if(dow===3&&(mo===5||mo===6)&&isInSchoolYear(curDate)){
     applyS('07:15','Auto naar Hondendagopvang Matties, Lopik (15 min)','reistijd');
     applyS('07:30','Hond brengen - Hondendagopvang Matties, Lekdijk West 44, Lopik','reistijd');
@@ -963,7 +952,7 @@ function gotoMonth(m,y){
     if(y)curYear=y;else curYear=getYearForMonth(m);
     const today=isoToday();
     const td=pd(today);
-    const start=(td.getFullYear()===curYear&&td.getMonth()===m)?today:toISO(curYeaR,m,1);
+    const start=(td.getFullYear()===curYear&&td.getMonth()===m)?today:toISO(curYear,m,1);
     document.querySelectorAll('.month-tab').forEach((t,i)=>t.classList.toggle('active',MONTHS[i]===m));
     selectDay(start);
   }catch(e){console.error('gotoMonth:',e);}
@@ -977,7 +966,7 @@ function renderCal(){
   for(let i=0;i<fmon;i++){const e=document.createElement('div');e.className='cal-day empty';cal.appendChild(e);}
   let mo=0;
   for(let d=1;d<=total;d++){
-    const iso=toISO(curYear,curYear,d),jsDay=new Date(curYear,curMonth,d).getDay();
+    const iso=toISO(curYear,curMonth,d),jsDay=new Date(curYear,curMonth,d).getDay();
     const el=document.createElement('div');
     el.className='cal-day'+(jsDay===0||jsDay===6?' weekend':'');
     const sf=SCHOOL_FREE[iso];
@@ -1231,7 +1220,7 @@ function buildRR(b){const f=b.dataset.rrfreq;if(!f)return null;let freq=f,int=1;
 function mks(a){const s={};a.forEach(af=>af.tijden.forEach(t=>{s[t]={val:af.label,cat:af.cat,worked:false,endtime:'',continuationOf:'',rrfreq:'',rrendtype:'',rrcount:'',rruntil:''};}));return s;}
 function seedIfNew(d,data){if(!localStorage.getItem(sk(d)))localStorage.setItem(sk(d),JSON.stringify(data));}
 function seedAll(){}
-
+ 
 let _clk;
 function startClock(){
   clearInterval(_clk);
@@ -1243,7 +1232,7 @@ function startClock(){
     }
   },60000);
 }
-
+ 
 /* === AGENDA === */
 let appointments=[],apptNextId=1,activeCat='locatie',dragState=null,resizeState=null,editingApptId=null;
 function t2mins(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
@@ -1399,7 +1388,7 @@ function deleteAppt(){
 function toggleForwardPanel(){document.getElementById('amForwardPanel').classList.toggle('open');}
 function forwardAppt(id){openApptModal(id);document.getElementById('amForwardPanel').classList.add('open');}
 function selectAcat(btn){document.querySelectorAll('.acat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeCat=btn.dataset.cat;}
-
+ 
 /* === ROLLOVER === */
 function getNextWorkday(iso){
   const d=new Date(iso+'T00:00:00');
@@ -1433,8 +1422,8 @@ function rolloverTasks(fromDate){
     showTip('Taken doorgeschoven',added+' open '+(added===1?'taak':'taken')+' doorgeschoven naar volgende werkdag.','#008972');
   }
 }
-
-
+ 
+ 
 /* === HERHALING === */
 function applyRepeat(apptData, sourceId){
   const intervals={daily:1,weekly:7,biweekly:14,monthly:0};
@@ -1488,10 +1477,10 @@ function applyRepeat(apptData, sourceId){
   }
   showTip('Herhaling ingepland','Afspraak herhaald t/m '+apptData.repeatUntil+'.','#1C829E');
 }
-
+ 
 /* === NOTION KOPPELING === */
 let notionConfig={apiKey:'',dbId:''};
-
+ 
 function openNotionSettings(){
   const cfg=JSON.parse(localStorage.getItem('notionConfig')||'{}');
   document.getElementById('notionApiKey').value=cfg.apiKey||'';
@@ -1520,7 +1509,7 @@ function openNotionModal(apptId){
   }
   createNotionPage(a,cfg);
 }
-
+ 
 async function createNotionPage(appt,cfg){
   const date=curDate||isoToday();
   const title=appt.title+' - '+date;
@@ -1561,12 +1550,12 @@ async function createNotionPage(appt,cfg){
     alert('Notion fout: '+e.message);
   }
 }
-
+ 
 function openNotionPage(url){
   window.open(url,'_blank');
 }
-
-
+ 
+ 
 /* === SCHOOLJAAR 2026-2027 HELPERS === */
 function getYearForMonth(month){
   // Aug-Dec 2026, Jan-Jul 2027
@@ -1586,7 +1575,7 @@ function getSchoolYearMonths(){
   for(let m=0;m<=END_MONTH;m++)result.push({month:m,year:YEAR2});
   return result;
 }
-
+ 
 document.addEventListener('DOMContentLoaded',()=>{
   buildGrid();
   const ar=document.getElementById('amRepeat');if(ar)ar.addEventListener('change',function(){document.getElementById('amRepeatEnd').style.display=this.value?'block':'none';});
@@ -1660,10 +1649,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
 });
-
-
+ 
+ 
 </script>
-
+ 
 <div class="modal-overlay" id="notionSettingsOverlay" style="z-index:1001;">
 <div class="modal">
   <h3>⚙ Notion Instellingen</h3>
