@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- v20260605-mailquick -->
+<!-- v20260716-schooljaar2627 -->
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Dagplanner 2026</title>
+<title>Dagplanner 2026-2027</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#006077">
 <meta name="mobile-web-app-capable" content="yes">
@@ -195,37 +195,6 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .c-txt{flex:1;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:11.5px;color:var(--text);padding:2px 0;background:transparent;resize:none;line-height:1.4;overflow:hidden;min-height:18px;}
 .c-txt::placeholder{color:#c8d4db;font-style:italic;}
 .c-txt.done{text-decoration:line-through;color:#aab5bb;}
-.c-grip{flex-shrink:0;width:12px;margin-top:3px;color:#c8d4db;font-size:11px;cursor:grab;user-select:none;line-height:1;opacity:0;transition:opacity .15s;}
-.comm-item:hover .c-grip{opacity:1;}
-.c-grip:active{cursor:grabbing;}
-.comm-item.comm-dragging{opacity:.5;background:rgba(36,96,96,.06);border-radius:4px;}
-.comm-list.drop-over{background:rgba(36,96,96,.06);outline:1.5px dashed var(--green);outline-offset:-2px;border-radius:4px;}
-/* Naam-chips */
-.name-chips{display:flex;flex-wrap:wrap;gap:3px;padding:3px 7px 1px;}
-.name-chip{font-family:'Barlow',sans-serif;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px;border:1.5px solid var(--border);background:white;color:#555;cursor:pointer;transition:all .12s;}
-.name-chip:hover{border-color:var(--blue);color:var(--blue);background:rgba(28,130,158,.06);}
-/* Categorie-labels mailen */
-.c-mailcat{flex-shrink:0;margin-top:4px;font-size:7px;font-weight:700;color:white;border-radius:2px;padding:1px 4px;white-space:nowrap;cursor:pointer;user-select:none;text-transform:uppercase;letter-spacing:.3px;}
-.c-mailcat[data-cat="mt"]{background:#1C829E;}
-.c-mailcat[data-cat="samenwerkingsverband"]{background:#008972;}
-.c-mailcat[data-cat="leerplicht"]{background:#EB6334;}
-.c-mailcat[data-cat="ouder"]{background:#006077;}
-.c-mailcat[data-cat="mentor"]{background:#d4a000;}
-/* Keuzemenu labels */
-.mailcat-menu{position:absolute;z-index:600;background:white;border:1.5px solid var(--border);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.16);padding:3px;min-width:150px;}
-.mailcat-opt{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:4px;font-size:11px;font-weight:500;color:var(--text);cursor:pointer;}
-.mailcat-opt:hover{background:var(--grey);}
-.mailcat-opt.clr{color:#9aabb5;font-style:italic;border-top:1px solid var(--border);margin-top:2px;}
-.mailcat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.mailcat-dot[data-cat="mt"]{background:#1C829E;}
-.mailcat-dot[data-cat="samenwerkingsverband"]{background:#008972;}
-.mailcat-dot[data-cat="leerplicht"]{background:#EB6334;}
-.mailcat-dot[data-cat="ouder"]{background:#006077;}
-.mailcat-dot[data-cat="mentor"]{background:#d4a000;}
-/* Snelinvoer mailen */
-.mail-quick{font-family:'Barlow',sans-serif;font-size:11px;border:1.5px solid var(--border);border-radius:4px;padding:4px 8px;margin:2px 7px 4px;outline:none;color:var(--darkblue);background:rgba(36,96,96,.04);transition:border-color .15s;}
-.mail-quick:focus{border-color:var(--green);background:white;}
-.mail-quick::placeholder{color:#9aabb5;font-style:italic;}
 .notes-sec{flex:1;display:flex;flex-direction:column;}
 .notes-hdr{background:var(--darkblue);color:white;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;}
 .notes-area{flex:1;width:100%;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--text);padding:5px 9px;resize:none;min-height:60px;line-height:1.5;background:transparent;}
@@ -238,7 +207,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 .intent-lbl{font-size:8px;color:#9aabb5;font-weight:700;letter-spacing:.8px;text-transform:uppercase;display:block;margin-bottom:1px;}
 .intent-inp{font-family:'Barlow',sans-serif;font-size:10.5px;color:var(--darkblue);font-weight:500;border:none;border-bottom:1px dashed var(--border);outline:none;text-align:center;background:transparent;width:170px;padding:1px 4px;}
 .intent-inp::placeholder{color:#c8d4db;font-style:italic;font-weight:400;}
-@media print{body{background:white;}.topnav,.hours-bar,.month-panel{display:none;}.page-wrap{padding:0;}.page{box-shadow:none;}.picker{display:none!important;}.cat-tag{display:inline-block!important;}.add-btn,.w-dot,.mail-quick,.c-grip,.name-chips{display:none!important;}@page{size:A4 portrait;margin:0;}}
+@media print{body{background:white;}.topnav,.hours-bar,.month-panel{display:none;}.page-wrap{padding:0;}.page{box-shadow:none;}.picker{display:none!important;}.cat-tag{display:inline-block!important;}.add-btn,.w-dot{display:none!important;}@page{size:A4 portrait;margin:0;}}
 
 /* === AGENDA VIEW === */
 .agenda-container { display: flex; gap: 0; position: relative; }
@@ -314,10 +283,19 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 <body>
 <div class="topnav">
   <div class="topnav-title">Dagplanner</div>
-  <div class="month-tabs">
-    <button class="month-tab" data-month="4">Mei</button>
-    <button class="month-tab" data-month="5">Juni</button>
-    <button class="month-tab" data-month="6">Juli</button>
+  <div class="month-tabs" style="flex-wrap:wrap;gap:3px;">
+    <button class="month-tab" data-month="7" data-year="2026">Aug</button>
+    <button class="month-tab" data-month="8" data-year="2026">Sep</button>
+    <button class="month-tab" data-month="9" data-year="2026">Okt</button>
+    <button class="month-tab" data-month="10" data-year="2026">Nov</button>
+    <button class="month-tab" data-month="11" data-year="2026">Dec</button>
+    <button class="month-tab" data-month="0" data-year="2027">Jan</button>
+    <button class="month-tab" data-month="1" data-year="2027">Feb</button>
+    <button class="month-tab" data-month="2" data-year="2027">Mrt</button>
+    <button class="month-tab" data-month="3" data-year="2027">Apr</button>
+    <button class="month-tab" data-month="4" data-year="2027">Mei</button>
+    <button class="month-tab" data-month="5" data-year="2027">Jun</button>
+    <button class="month-tab" data-month="6" data-year="2027">Jul</button>
   </div>
   <div class="day-nav">
     <button class="nav-btn" id="btnPrev">&#8249;</button>
@@ -333,6 +311,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
     <button class="btn btn-ics"     id="btnIcs">&#128197; Outlook importeren</button>
     <input type="file" id="icsFile" accept=".ics" style="display:none" onchange="importICS(this)">
     <button class="btn btn-sync"    id="btnSync">&#9729; Sync</button>
+    <button class="btn" style="background:#000;color:white" onclick="openNotionSettings()">N Notion</button>
     <span id="syncStatus" class="sync-status"></span>
     <button class="btn btn-clear"   id="btnClear">&#10005; Dag wissen</button>
     <button class="btn btn-reset"   id="btnReset">&#8635; Reset alles</button>
@@ -372,7 +351,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 </div>
 <div class="page">
   <div class="hdr">
-    <div><div class="hdr-title">Dagplanner</div><div class="hdr-sub">07:30 &#8211; 22:00 &middot; kwartierindeling</div></div>
+    <div><div class="hdr-title">Dagplanner</div><div class="hdr-sub">Schooljaar 2026&#8211;2027</div></div>
     <div class="hdr-right">
       <div class="hdr-date" id="hDate">&#8211;</div>
       <div class="hdr-day" id="hDay">&#8211;</div>
@@ -402,8 +381,8 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
       <div class="task-sec prio-m"><div class="task-hdr"><div class="t-badge">2</div>Middel prioriteit</div><div class="task-list" id="tl-midden"></div><button class="add-btn add-task-btn" onclick="addTask('midden')">+ Taak</button></div>
       <div class="task-sec prio-l"><div class="task-hdr"><div class="t-badge">3</div>Lage prioriteit</div><div class="task-list" id="tl-laag"></div><button class="add-btn add-task-btn" onclick="addTask('laag')">+ Taak</button></div>
       <div class="comm-sec comm-bellen"><div class="comm-hdr">Bellen</div><div class="comm-list" id="cl-bellen"></div><button class="add-btn" style="color:#5573a0" onclick="addComm('bellen')">+ Toevoegen</button></div>
-      <div class="comm-sec comm-mailen"><div class="comm-hdr">Mailen</div><input class="mail-quick" id="mailQuick" placeholder="Mail-onderwerp + Enter"><div class="comm-list" id="cl-mailen"></div><button class="add-btn" style="color:#246060" onclick="addComm('mailen')">+ Toevoegen</button></div>
-      <div class="comm-sec comm-bespreken"><div class="comm-hdr">Bespreken</div><div class="name-chips" id="names-bespreken"></div><div class="comm-list" id="cl-bespreken"></div><button class="add-btn" style="color:#70508a" onclick="addComm('bespreken')">+ Toevoegen</button></div>
+      <div class="comm-sec comm-mailen"><div class="comm-hdr">Mailen</div><div class="comm-list" id="cl-mailen"></div><button class="add-btn" style="color:#246060" onclick="addComm('mailen')">+ Toevoegen</button></div>
+      <div class="comm-sec comm-bespreken"><div class="comm-hdr">Bespreken</div><div class="comm-list" id="cl-bespreken"></div><button class="add-btn" style="color:#70508a" onclick="addComm('bespreken')">+ Toevoegen</button></div>
       <div class="notes-sec"><div class="notes-hdr">Notities</div><textarea class="notes-area" id="notesArea" placeholder="Aantekeningen, follow-ups..."></textarea></div>
     </div>
   </div>
@@ -451,7 +430,7 @@ body{font-family:'Barlow',sans-serif;background:#d5dfe5;color:var(--text);min-he
 </div></div></div>
 <script>
 
-const YEAR=2026,MONTHS=[4,5,6];
+const YEAR=2026,YEAR2=2027,START_MONTH=7,END_MONTH=6;
 const DAYS_NL=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const MONTHS_NL=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
 const CATS=[
@@ -495,7 +474,7 @@ const SAVED_LOCS=[
   {label:'CSG Willem de Zwijger (algemeen)',  val:'CSG Willem de Zwijger, Schoonhoven',         fiets:true,  cat:'locatie'},
 ];
 const SYNC_URL='https://script.google.com/macros/s/AKfycbyGn6SLIl5HSlIPEbXLz9nUwSdYRhfeDlkrLF4qH9h1LxnocBy05RQ2gd0u-2bCipPe/exec';
-let curDate=null,curMonth=4;
+let curDate=null,curMonth=7,curYear=2026;
 const sk=d=>'dp26_'+d;
 const toISO=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
@@ -693,111 +672,18 @@ function addTask(prio,text='',done=false,rolledOver=false){
   if(!text)setTimeout(()=>ta.focus(),50);
   autoSave();
 }
-let draggedComm=null;
-const TEAM_NAMES=['André','Serge','Carolien','Bas','Michelle','Perry','Linda'];
-const MAIL_CATS=[
-  {key:'mt',label:'MT',short:'MT'},
-  {key:'samenwerkingsverband',label:'Samenwerkingsverband',short:'SWV'},
-  {key:'leerplicht',label:'Leerplicht',short:'Leerplicht'},
-  {key:'ouder',label:'Ouder',short:'Ouder'},
-  {key:'mentor',label:'Mentor',short:'Mentor'},
-];
-const MAIL_CAT_SHORT=Object.fromEntries(MAIL_CATS.map(c=>[c.key,c.short]));
-function buildNameChips(){
-  ['bespreken'].forEach(type=>{
-    const box=document.getElementById('names-'+type);if(!box||box.children.length)return;
-    TEAM_NAMES.forEach(name=>{
-      const b=document.createElement('button');b.className='name-chip';b.textContent=name;
-      b.onclick=()=>{addComm(type,name+': ',false);};
-      box.appendChild(b);
-    });
-  });
-}
-// Categorie-label op een mailitem zetten/wisselen
-function setMailCat(item,cat){
-  let badge=item.querySelector('.c-mailcat');
-  const cb=item.querySelector('.c-cb');
-  if(!badge){
-    badge=document.createElement('span');badge.className='c-mailcat';
-    badge.onclick=e=>{e.stopPropagation();openMailCatMenu(item,badge);};
-    item.insertBefore(badge,cb.nextSibling);
-  }
-  if(cat){
-    badge.style.cssText='';
-    badge.dataset.cat=cat;
-    badge.title='Klik om categorie te wijzigen';
-    badge.textContent=MAIL_CAT_SHORT[cat]||cat;
-    item.dataset.mailcat=cat;
-  } else {
-    // terug naar grijs plus-knopje
-    delete badge.dataset.cat;
-    badge.style.cssText='background:#c8d4db;color:#fff;';
-    badge.title='Categorie toevoegen';
-    badge.textContent='+ label';
-    delete item.dataset.mailcat;
-  }
-  autoSave();
-}
-// Keuzemenu met alle labels; één klik om te kiezen
-function openMailCatMenu(item,anchor){
-  closeMailCatMenu();
-  const menu=document.createElement('div');menu.className='mailcat-menu';menu.id='mailcatMenu';
-  MAIL_CATS.forEach(c=>{
-    const o=document.createElement('div');o.className='mailcat-opt';o.dataset.cat=c.key;
-    const dot=document.createElement('span');dot.className='mailcat-dot';dot.dataset.cat=c.key;
-    const lbl=document.createElement('span');lbl.textContent=c.label;
-    o.append(dot,lbl);
-    o.onclick=e=>{e.stopPropagation();setMailCat(item,c.key);closeMailCatMenu();};
-    menu.appendChild(o);
-  });
-  // optie om het label te verwijderen
-  const clr=document.createElement('div');clr.className='mailcat-opt clr';clr.textContent='Geen label';
-  clr.onclick=e=>{e.stopPropagation();setMailCat(item,'');closeMailCatMenu();};
-  menu.appendChild(clr);
-  document.body.appendChild(menu);
-  const r=anchor.getBoundingClientRect();
-  menu.style.top=(r.bottom+window.scrollY+2)+'px';
-  menu.style.left=(r.left+window.scrollX)+'px';
-}
-function closeMailCatMenu(){const m=document.getElementById('mailcatMenu');if(m)m.remove();}
-document.addEventListener('click',closeMailCatMenu);
-function addComm(type,text='',done=false,mailcat=''){
+function addComm(type,text='',done=false){
   const list=document.getElementById('cl-'+type);
-  const item=document.createElement('div');item.className='comm-item';item.dataset.type=type;
-  const grip=document.createElement('span');grip.className='c-grip';grip.textContent='\u283F';grip.title='Sleep naar een andere lijst of positie';
+  const item=document.createElement('div');item.className='comm-item';
   const cb=document.createElement('input');cb.type='checkbox';cb.className='c-cb';cb.checked=done;
   const ta=document.createElement('textarea');ta.className='c-txt'+(done?' done':'');ta.rows=1;ta.value=text;
   const ph={bellen:'Naam / nummer...',mailen:'Naam / onderwerp...',bespreken:'Wie / onderwerp...'};ta.placeholder=ph[type]||'...';
   cb.onchange=()=>{ta.classList.toggle('done',cb.checked);autoSave();};
   ta.oninput=function(){this.style.height='auto';this.style.height=Math.max(16,this.scrollHeight)+'px';autoSave();};
   ta.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addComm(type);setTimeout(()=>{const its=list.querySelectorAll('.c-txt');its[its.length-1].focus();},50);}};
-  // Slepen via de greep, zodat de tekst gewoon bewerkbaar blijft
-  grip.addEventListener('mousedown',()=>{item.draggable=true;});
-  item.addEventListener('dragstart',e=>{draggedComm=item;item.classList.add('comm-dragging');e.dataTransfer.effectAllowed='move';});
-  item.addEventListener('dragend',()=>{item.classList.remove('comm-dragging');item.draggable=false;draggedComm=null;document.querySelectorAll('.comm-list.drop-over').forEach(l=>l.classList.remove('drop-over'));autoSave();});
-  item.append(grip,cb,ta);
-  if(type==='mailen'){
-    if(mailcat){setMailCat(item,mailcat);}
-    else{
-      // grijs plus-knopje om een categorie te kiezen
-      const add=document.createElement('span');add.className='c-mailcat';add.style.cssText='background:#c8d4db;color:#fff;';add.textContent='+ label';add.title='Categorie toevoegen';
-      add.onclick=e=>{e.stopPropagation();openMailCatMenu(item,add);};
-      item.insertBefore(add,cb.nextSibling);
-    }
-  }
-  list.appendChild(item);
+  item.append(cb,ta);list.appendChild(item);
   if(!text)setTimeout(()=>ta.focus(),50);
   autoSave();
-}
-// Bepaalt na welk item de gesleepte rij moet komen, op basis van muispositie
-function commDropTarget(list,y){
-  const items=[...list.querySelectorAll('.comm-item:not(.comm-dragging)')];
-  return items.reduce((closest,child)=>{
-    const box=child.getBoundingClientRect();
-    const offset=y-box.top-box.height/2;
-    if(offset<0&&offset>closest.offset)return{offset,el:child};
-    return closest;
-  },{offset:-Infinity,el:null}).el;
 }
 function setMood(btn){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');autoSave();}
 const CHIP_COLORS={vrij:'#008972',vakantie:'#1C829E',studiedag:'#d4a000',ziek:'#EB6334',verjaardag:'#8B5CF6'};
@@ -833,8 +719,8 @@ function updateHours(){
   let wk=workedMins();
   for(let i=0;i<7;i++){const wd=new Date(mon);wd.setDate(mon.getDate()+i);const iso=toISO(wd.getFullYear(),wd.getMonth(),wd.getDate());if(iso!==curDate)wk+=storedMins(iso);}
   document.getElementById('hWeek').textContent=m2s(wk);
-  const days=new Date(YEAR,d.getMonth()+1,0).getDate();let mo=0;
-  for(let i=1;i<=days;i++){const iso=toISO(YEAR,d.getMonth(),i);mo+=iso===curDate?workedMins():storedMins(iso);}
+  const days=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();let mo=0;
+  for(let i=1;i<=days;i++){const iso=toISO(d.getFullYear(),d.getMonth(),i);mo+=iso===curDate?workedMins():storedMins(iso);}
   document.getElementById('hMonth').textContent=m2s(mo);
 }
 function setSyncStatus(s){
@@ -906,19 +792,6 @@ async function manualSync(){
   if(count>0){if(curDate){loadDay(curDate);updateHours();}showTip('Gesynchroniseerd',`${count} dag(en) opgehaald.`,'#008972');}
   else showTip('Niets gevonden','Geen nieuwe data of geen verbinding.','#EB6334');
 }
-// Verwijdert lege bel/mail/bespreek-items, maar laat het item met focus en het laatste lege item per lijst staan
-function pruneEmptyComms(){
-  ['bellen','mailen','bespreken'].forEach(t=>{
-    const items=[...document.querySelectorAll('#cl-'+t+' .comm-item')];
-    const leeg=items.filter(it=>{
-      const ta=it.querySelector('.c-txt');
-      return ta&&!ta.value.trim()&&document.activeElement!==ta;
-    });
-    // hou er minstens één leeg item over zodat de lijst niet helemaal dichtklapt
-    const teVerwijderen= (items.length-leeg.length===0) ? leeg.slice(1) : leeg;
-    teVerwijderen.forEach(it=>it.remove());
-  });
-}
 function saveDay(){
   if(!curDate)return;
   const slots={},tasks={},comms={};
@@ -927,7 +800,7 @@ function saveDay(){
     slots[b.dataset.time]={val:ta?ta.value:'',cat:b.dataset.cat||'',worked:b.classList.contains('worked'),endtime:b.dataset.endtime||'',continuationOf:b.dataset.continuationOf||'',rrfreq:b.dataset.rrfreq||'',rrendtype:b.dataset.rrendtype||'',rrcount:b.dataset.rrcount||'',rruntil:b.dataset.rruntil||'',location:b.dataset.location||''};
   });
   ['hoog','midden','laag'].forEach(p=>{tasks[p]=[];document.querySelectorAll('#tl-'+p+' .task-item').forEach(it=>{tasks[p].push({text:it.querySelector('.t-txt').value,done:it.querySelector('.t-cb').checked});});});
-  ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked,mailcat:it.dataset.mailcat||''});});});
+  ['bellen','mailen','bespreken'].forEach(t=>{comms[t]=[];document.querySelectorAll('#cl-'+t+' .comm-item').forEach(it=>{comms[t].push({text:it.querySelector('.c-txt').value,done:it.querySelector('.c-cb').checked});});});
   const am=document.querySelector('.mood-btn.on');
   const banner=getBannerData();
   const obj={
@@ -1014,7 +887,7 @@ function applyFixed(dateStr){
     const na=document.getElementById('notesArea');
     if(!na.value)na.value='BiOND - Mariaplaats, Utrecht\nRijroute: Schoonhoven > A12 > Utrecht Centrum > Mariaplaats';
   }
-  if(dow===3&&(mo===5||mo===6)&&d.getFullYear()===YEAR){
+  if(dow===3&&(mo===5||mo===6)&&isInSchoolYear(curDate)){
     applyS('07:15','Auto naar Hondendagopvang Matties, Lopik (15 min)','reistijd');
     applyS('07:30','Hond brengen - Hondendagopvang Matties, Lekdijk West 44, Lopik','reistijd');
     applyS('07:45','Auto terug naar Schoonhoven (15 min)','reistijd');
@@ -1047,7 +920,7 @@ function loadDay(dateStr){
         if(s.rrfreq){b.dataset.rrfreq=s.rrfreq;b.dataset.rrendtype=s.rrendtype||'count';b.dataset.rrcount=s.rrcount||'10';b.dataset.rruntil=s.rruntil||'';rrBadge(b,s.rrfreq);}
         if(s.location){b.dataset.location=s.location;let lb=b.querySelector('.loc-badge');if(!lb){lb=document.createElement('span');lb.className='loc-badge';b.appendChild(lb);}lb.textContent=s.location;}
       });
-      const ll=(items,fn,id,min)=>{(items||[]).forEach(it=>fn(id,it.text,it.done,it.mailcat||''));for(let i=(items||[]).length;i<min;i++)fn(id,'');};
+      const ll=(items,fn,id,min)=>{(items||[]).forEach(it=>fn(id,it.text,it.done));for(let i=(items||[]).length;i<min;i++)fn(id,'');};
       if(d.appointments&&Array.isArray(d.appointments)){appointments=d.appointments;apptNextId=Math.max(1,...(appointments.length?appointments.map(a=>a.id+1):[1]));}
       if(d.tasks)['hoog','midden','laag'].forEach(p=>{(d.tasks[p]||[]).forEach(t=>addTask(p,t.text||'',t.done||false,!t.done&&t.rolledOver));for(let i=(d.tasks[p]||[]).length;i<2;i++)addTask(p,'');});
       else['hoog','midden','laag'].forEach(p=>{for(let i=0;i<2;i++)addTask(p,'');});
@@ -1062,16 +935,14 @@ function loadDay(dateStr){
   }
   applyFixed(dateStr);
   updateHours();
-  // ruim bestaande lege rommel op uit eerder opgeslagen dagen
-  setTimeout(pruneEmptyComms,0);
 }
 function selectDay(dateStr){
   try{
     clearTimeout(window._st);
     if(curDate&&curDate!==dateStr&&dateStr>curDate)rolloverTasks(curDate);
-    if(curDate){pruneEmptyComms();saveDay();}
+    if(curDate)saveDay();
     curDate=dateStr;
-    const d=pd(dateStr);curMonth=d.getMonth();
+    const d=pd(dateStr);curMonth=d.getMonth();curYear=d.getFullYear();
     document.getElementById('dayLabel').textContent=`${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
     document.getElementById('hDate').textContent=`${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`;
     document.getElementById('hDay').textContent=DAYS_NL[d.getDay()];
@@ -1083,29 +954,30 @@ function shiftDay(n){
   try{
     const d=pd(curDate);d.setDate(d.getDate()+n);
     const iso=toISO(d.getFullYear(),d.getMonth(),d.getDate());
-    if(MONTHS.includes(d.getMonth()))selectDay(iso);
+    if(isInSchoolYear(iso))selectDay(iso);
   }catch(e){console.error('shiftDay:',e);}
 }
-function gotoMonth(m){
+function gotoMonth(m,y){
   try{
     curMonth=m;
+    if(y)curYear=y;else curYear=getYearForMonth(m);
     const today=isoToday();
     const td=pd(today);
-    const start=(td.getFullYear()===YEAR&&td.getMonth()===m)?today:toISO(YEAR,m,1);
+    const start=(td.getFullYear()===curYear&&td.getMonth()===m)?today:toISO(curYeaR,m,1);
     document.querySelectorAll('.month-tab').forEach((t,i)=>t.classList.toggle('active',MONTHS[i]===m));
     selectDay(start);
   }catch(e){console.error('gotoMonth:',e);}
 }
 function renderCal(){
   const cal=document.getElementById('mCal');cal.innerHTML='';
-  document.getElementById('mTitle').textContent=MONTHS_NL[curMonth].charAt(0).toUpperCase()+MONTHS_NL[curMonth].slice(1)+' '+YEAR;
+  document.getElementById('mTitle').textContent=MONTHS_NL[curMonth].charAt(0).toUpperCase()+MONTHS_NL[curMonth].slice(1)+' '+curYear;
   ['ma','di','wo','do','vr','za','zo'].forEach(d=>{const h=document.createElement('div');h.className='cal-hdr';h.textContent=d;cal.appendChild(h);});
-  const fjs=new Date(YEAR,curMonth,1).getDay(),fmon=(fjs===0)?6:fjs-1;
-  const total=new Date(YEAR,curMonth+1,0).getDate(),today=isoToday();
+  const fjs=new Date(curYear,curMonth,1).getDay(),fmon=(fjs===0)?6:fjs-1;
+  const total=new Date(curYear,curMonth+1,0).getDate(),today=isoToday();
   for(let i=0;i<fmon;i++){const e=document.createElement('div');e.className='cal-day empty';cal.appendChild(e);}
   let mo=0;
   for(let d=1;d<=total;d++){
-    const iso=toISO(YEAR,curMonth,d),jsDay=new Date(YEAR,curMonth,d).getDay();
+    const iso=toISO(curYear,curYear,d),jsDay=new Date(curYear,curMonth,d).getDay();
     const el=document.createElement('div');
     el.className='cal-day'+(jsDay===0||jsDay===6?' weekend':'');
     const sf=SCHOOL_FREE[iso];
@@ -1184,7 +1056,7 @@ function importICS(input){
       const text=e.target.result;
       const events=parseICS(text);
       if(!events.length){alert('Geen afspraken gevonden in dit bestand.');input.value='';return;}
-      const relevant=events.filter(ev=>MONTHS.includes(ev.date.getMonth())&&ev.date.getFullYear()===YEAR);
+      const relevant=events.filter(ev=>isInSchoolYear(ev.date.toISOString().slice(0,10)));
       if(!relevant.length){alert('Geen afspraken gevonden voor mei t/m juli 2026.');input.value='';return;}
       if(!confirm(`${relevant.length} afspraak/afspraken gevonden voor mei-juli 2026.\nInladen in de planner?`)){input.value='';return;}
       const perDay={};
@@ -1424,6 +1296,7 @@ function renderAgenda(){
       '<div class="appt-btns">'+
       '<button class="appt-btn" title="Bewerken" onclick="openApptModal('+a.id+');event.stopPropagation()">✏</button>'+
       '<button class="appt-btn" title="Doorsturen" onclick="forwardAppt('+a.id+');event.stopPropagation()">→</button>'+
+      '<button class="appt-btn" title="Notion" onclick="handleNotionBtn('+a.id+');event.stopPropagation()">N</button>'+
       '</div>'+
       '<div class="resize-handle" data-id="'+a.id+'"></div>';
     el.addEventListener('mousedown',onApptDrag);
@@ -1531,7 +1404,7 @@ function selectAcat(btn){document.querySelectorAll('.acat-btn').forEach(b=>b.cla
 function getNextWorkday(iso){
   const d=new Date(iso+'T00:00:00');
   do{d.setDate(d.getDate()+1);}while(d.getDay()===0||d.getDay()===6);
-  return toISO(d.getFullYear(),d.getMonth(),d.getDate());
+  return d.toISOString().slice(0,10);
 }
 function rolloverTasks(fromDate){
   if(fromDate>isoToday())return;
@@ -1583,9 +1456,9 @@ function applyRepeat(apptData, sourceId){
     }
     if(d>until)break;
     
-    const iso=toISO(d.getFullYear(),d.getMonth(),d.getDate());
+    const iso=d.toISOString().slice(0,10);
     const targetMonth=d.getMonth();
-    if(!MONTHS.includes(targetMonth))continue;
+    if(!isInSchoolYear(iso))continue;
     
     // Load or create day data
     const raw=localStorage.getItem(sk(iso));
@@ -1616,15 +1489,113 @@ function applyRepeat(apptData, sourceId){
   showTip('Herhaling ingepland','Afspraak herhaald t/m '+apptData.repeatUntil+'.','#1C829E');
 }
 
+/* === NOTION KOPPELING === */
+let notionConfig={apiKey:'',dbId:''};
+
+function openNotionSettings(){
+  const cfg=JSON.parse(localStorage.getItem('notionConfig')||'{}');
+  document.getElementById('notionApiKey').value=cfg.apiKey||'';
+  document.getElementById('notionDbId').value=cfg.dbId||'376564170fd280308e91cc49056fe3f6';
+  document.getElementById('notionSettingsOverlay').classList.add('open');
+}
+function saveNotionSettings(){
+  const key=document.getElementById('notionApiKey').value.trim();
+  const db=document.getElementById('notionDbId').value.trim();
+  if(!key||!db){alert('Vul beide velden in.');return;}
+  localStorage.setItem('notionConfig',JSON.stringify({apiKey:key,dbId:db}));
+  document.getElementById('notionSettingsOverlay').classList.remove('open');
+  showTip('Notion instellingen opgeslagen','Je kunt nu vergaderingen aanmaken in Notion.','#1C829E');
+}
+function handleNotionBtn(apptId){
+  const a=appointments.find(x=>x.id===apptId);if(!a)return;
+  if(a.notionUrl){openNotionPage(a.notionUrl);}else{openNotionModal(apptId);}
+}
+function openNotionModal(apptId){
+  const a=appointments.find(x=>x.id===apptId);if(!a)return;
+  const cfg=JSON.parse(localStorage.getItem('notionConfig')||'{}');
+  if(!cfg.apiKey){
+    openNotionSettings();
+    showTip('Notion instellen','Vul eerst je API token in en klik Opslaan.','#EB6334');
+    return;
+  }
+  createNotionPage(a,cfg);
+}
+
+async function createNotionPage(appt,cfg){
+  const date=curDate||isoToday();
+  const title=appt.title+' - '+date;
+  
+  const body={
+    parent:{database_id:cfg.dbId},
+    properties:{
+      Name:{title:[{text:{content:title}}]},
+      Datum:{date:{start:date}},
+      Locatie:{rich_text:[{text:{content:appt.loc||''}}]},
+      Type:{select:{name:appt.cat||'locatie'}}
+    },
+    children:[
+      {object:'block',type:'heading_2',heading_2:{rich_text:[{text:{content:'Voorbereiding'}}]}},
+      {object:'block',type:'paragraph',paragraph:{rich_text:[{text:{content:appt.note||'Vul hier je voorbereiding in...'}}]}},
+      {object:'block',type:'heading_2',heading_2:{rich_text:[{text:{content:'Verslag'}}]}},
+      {object:'block',type:'paragraph',paragraph:{rich_text:[{text:{content:'Vul hier je verslag in...'}}]}}
+    ]
+  };
+  
+  try{
+    const res=await fetch('https://api.notion.com/v1/pages',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+cfg.apiKey,'Content-Type':'application/json','Notion-Version':'2022-06-28'},
+      body:JSON.stringify(body)
+    });
+    const data=await res.json();
+    if(data.url){
+      // Sla Notion URL op bij afspraak
+      appt.notionUrl=data.url;
+      autoSave();
+      renderAgenda();
+      showTip('Notion pagina aangemaakt','<a href="'+data.url+'" target="_blank" style="color:white;text-decoration:underline">Open in Notion →</a>','#1C829E');
+    } else {
+      alert('Fout: '+JSON.stringify(data));
+    }
+  }catch(e){
+    alert('Notion fout: '+e.message);
+  }
+}
+
+function openNotionPage(url){
+  window.open(url,'_blank');
+}
+
+
+/* === SCHOOLJAAR 2026-2027 HELPERS === */
+function getYearForMonth(month){
+  // Aug-Dec 2026, Jan-Jul 2027
+  return month>=7?YEAR:YEAR2;
+}
+function isInSchoolYear(dateStr){
+  const d=pd(dateStr);
+  const m=d.getMonth(),y=d.getFullYear();
+  if(y===YEAR&&m>=START_MONTH)return true;
+  if(y===YEAR2&&m<=END_MONTH)return true;
+  return false;
+}
+function getSchoolYearMonths(){
+  // Returns [{month, year}] for Aug 2026 - Jul 2027
+  const result=[];
+  for(let m=START_MONTH;m<=11;m++)result.push({month:m,year:YEAR});
+  for(let m=0;m<=END_MONTH;m++)result.push({month:m,year:YEAR2});
+  return result;
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   buildGrid();
-  buildNameChips();
   const ar=document.getElementById('amRepeat');if(ar)ar.addEventListener('change',function(){document.getElementById('amRepeatEnd').style.display=this.value?'block':'none';});
   document.getElementById('apptModalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeApptModal();});
+  const nso=document.getElementById('notionSettingsOverlay');if(nso)nso.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   document.getElementById('btnPrev').addEventListener('click',()=>shiftDay(-1));
   document.getElementById('btnNext').addEventListener('click',()=>shiftDay(1));
   document.querySelectorAll('.month-tab[data-month]').forEach(btn=>{
-    btn.addEventListener('click',()=>gotoMonth(parseInt(btn.dataset.month)));
+    btn.addEventListener('click',()=>gotoMonth(parseInt(btn.dataset.month),btn.dataset.year?parseInt(btn.dataset.year):undefined));
   });
   document.getElementById('btnPrint').addEventListener('click',()=>window.print());
   document.getElementById('btnOutlook').addEventListener('click',()=>exportICS());
@@ -1634,82 +1605,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('btnSync').addEventListener('click',()=>manualSync());
   document.getElementById('btnClear').addEventListener('click',()=>clearCurDay());
   document.getElementById('btnReset').addEventListener('click',()=>fullReset());
-  // Snelinvoer mailen: Enter of plakken voegt onderwerp(en) toe als afvinkbaar item
-  const mq=document.getElementById('mailQuick');
-  if(mq){
-    // Ruis die Outlook/Copilot meekopieert
-    const SKIP=/^(van|from|verzonden|sent|aan|to|cc|bcc|datum|date|onderwerp|subject|importance|urgentie|bijlagen?|attachments?|maak een samenvatting|summarize)/i;
-    // Herkent een naam in "Achternaam, Voorletters"-vorm, bijv. "Visser, D.A."
-    const NAAM=/^[A-Za-zÀ-ÿ'’\-]+(?:\s+(?:van|van der|van den|de|den|der|ter|te))?\s*,\s*[A-Za-zÀ-ÿ.\s'’\-]+$/;
-    // Marleen zelf -> nooit als afzender pakken
-    const EIGEN_NAAM=/^vennix-oudshoorn,\s*m\.?l\.?/i;
-    // splitst een puntkomma-lijst en haalt de eigen naam eruit
-    const schoonNaam=l=>l.split(';').map(s=>s.trim()).filter(s=>s&&!EIGEN_NAAM.test(s))[0]||'';
-    // Probeert uit geplakte mailtekst onderwerp + afzender te halen
-    const parseMail=txt=>{
-      const nonEmpty=txt.split(/\r\n|\r|\n/).map(l=>l.trim()).filter(l=>l);
-      if(nonEmpty.length<2)return null;            // te kort voor een mail
-      const onderwerp=nonEmpty[0];                 // eerste regel = onderwerp
-      // kandidaat-afzenders: regels ná de eerste, geen ruis, geen MT-vlag, eigen naam eruit
-      const kandidaten=nonEmpty.slice(1)
-        .filter(l=>!SKIP.test(l)&&l!=='MT-belangrijk')
-        .map(schoonNaam)
-        .filter(l=>l);
-      // liefst een echte komma-naam, anders de eerste overgebleven regel (bijv. "Secretariaat")
-      const afzender=kandidaten.find(l=>NAAM.test(l))||kandidaten[0]||'';
-      if(!afzender)return null;                    // geen afzender herkend -> geen mail
-      const isMT=nonEmpty.some(l=>/\bMT-belangrijk\b/i.test(l));
-      return {text:afzender+' — '+onderwerp, mailcat:isMT?'mt':''};
-    };
-    const addMailLines=txt=>{
-      const mail=parseMail(txt);
-      if(mail){addComm('mailen',mail.text,false,mail.mailcat);return 1;}
-      // anders: losse regels, ruis eruit, elk een eigen item
-      let n=0;
-      txt.split(/\r\n|\r|\n/).map(l=>l.trim()).filter(l=>l&&!SKIP.test(l)).forEach(v=>{addComm('mailen',v,false);n++;});
-      return n;
-    };
-    mq.addEventListener('keydown',e=>{
-      if(e.key==='Enter'){
-        e.preventDefault();
-        if(addMailLines(mq.value))mq.value='';
-      }
-    });
-    mq.addEventListener('paste',e=>{
-      const txt=(e.clipboardData||window.clipboardData).getData('text');
-      if(txt){e.preventDefault();if(addMailLines(txt))mq.value='';}
-    });
-  }
-  // Slepen tussen/binnen de bellen-, mailen- en bespreken-lijsten
-  ['bellen','mailen','bespreken'].forEach(type=>{
-    const list=document.getElementById('cl-'+type);
-    if(!list)return;
-    list.addEventListener('dragover',e=>{
-      if(!draggedComm)return;
-      e.preventDefault();list.classList.add('drop-over');
-      const after=commDropTarget(list,e.clientY);
-      if(after)list.insertBefore(draggedComm,after);else list.appendChild(draggedComm);
-    });
-    list.addEventListener('dragleave',e=>{if(e.target===list)list.classList.remove('drop-over');});
-    list.addEventListener('drop',e=>{
-      if(!draggedComm)return;
-      e.preventDefault();list.classList.remove('drop-over');
-      const oldType=draggedComm.dataset.type;
-      draggedComm.dataset.type=type;
-      const ta=draggedComm.querySelector('.c-txt');
-      const ph={bellen:'Naam / nummer...',mailen:'Naam / onderwerp...',bespreken:'Wie / onderwerp...'};
-      if(ta)ta.placeholder=ph[type]||'...';
-      const badge=draggedComm.querySelector('.c-mailcat');
-      if(type==='mailen'&&oldType!=='mailen'){
-        // krijgt label-knopje in mailen
-        if(!badge)setMailCat(draggedComm,'');
-      } else if(type!=='mailen'&&badge){
-        // label hoort alleen bij mailen
-        badge.remove();delete draggedComm.dataset.mailcat;
-      }
-      autoSave();
-    });
-  });
   document.querySelectorAll('.day-chip').forEach(btn=>{
     btn.addEventListener('click',()=>toggleChip(btn));
   });
@@ -1723,8 +1618,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const td=pd(today);
   const todayMonth=td.getMonth();
   const todayYear=td.getFullYear();
-  const inRange=todayYear===YEAR&&MONTHS.includes(todayMonth);
-  const start=inRange?today:toISO(YEAR,4,1);
+  const inRange=isInSchoolYear(today);
+  const start=inRange?today:toISO(YEAR,START_MONTH,1);
   curMonth=pd(start).getMonth();
   document.querySelectorAll('.month-tab').forEach((t,i)=>{
     t.classList.toggle('active',MONTHS[i]===curMonth);
@@ -1742,7 +1637,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
   let dp=null;
-  window.addEventListener('beforeunload',()=>{if(curDate){pruneEmptyComms();saveDay();}});
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;const b=document.getElementById('installBanner');if(b)b.style.display='flex';});
   window.addEventListener('appinstalled',()=>{dp=null;const b=document.getElementById('installBanner');if(b)b.style.display='none';});
   const ib=document.getElementById('installBtn');
@@ -1770,5 +1664,19 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 </script>
 
+<div class="modal-overlay" id="notionSettingsOverlay" style="z-index:1001;">
+<div class="modal">
+  <h3>⚙ Notion Instellingen</h3>
+  <label>API Token</label>
+  <input type="password" id="notionApiKey" placeholder="secret_...">
+  <label>Database ID</label>
+  <input type="text" id="notionDbId" placeholder="32 tekens" value="376564170fd280308e91cc49056fe3f6">
+  <p style="font-size:10px;color:#9aabb5;margin-top:8px;">Je API token is veilig opgeslagen in je browser en wordt nooit verstuurd naar andere servers dan Notion.</p>
+  <div class="modal-btns">
+    <button class="mbtn-save" onclick="saveNotionSettings()">Opslaan</button>
+    <button class="mbtn-cancel" onclick="document.getElementById('notionSettingsOverlay').classList.remove('open')">Annuleer</button>
+  </div>
+</div>
+</div>
 </body>
-</html>
+</html,'2026-08-28':{label:'Startdag nieuwe collega's',color:'#1C829E',type:'studiedag'},'2026-08-31':{label:'Jaaropening',color:'#1C829E',type:'studiedag'},'2026-09-01':{label:'Startdag alle afdel.',color:'#008972',type:'roostervrij'},'2026-09-02':{label:'Introductiedag brugklas',color:'#008972',type:'roostervrij'},'2026-09-15':{label:'Teamvergadering 1/5',color:'#8B5CF6',type:'roostervrij'},'2026-09-21':{label:'Brugklaskamp',color:'#EB6334',type:'roostervrij'},'2026-09-22':{label:'Brugklaskamp',color:'#EB6334',type:'roostervrij'},'2026-09-23':{label:'Brugklaskamp',color:'#EB6334',type:'roostervrij'},'2026-09-24':{label:'Brugklaskamp',color:'#EB6334',type:'roostervrij'},'2026-09-25':{label:'Brugklaskamp',color:'#EB6334',type:'roostervrij'},'2026-10-06':{label:'Organisatiemiddag',color:'#d4a000',type:'roostervrij'},'2026-10-09':{label:'Paarse vrijdag',color:'#8B5CF6',type:'roostervrij'},'2026-10-13':{label:'Vaksectiehoofden / Org.middag',color:'#d4a000',type:'roostervrij'},'2026-10-19':{label:'Herfstvakantie',color:'#fff3e0',type:'vakantie'},'2026-10-20':{label:'Herfstvakantie',color:'#fff3e0',type:'vakantie'},'2026-10-21':{label:'Herfstvakantie',color:'#fff3e0',type:'vakantie'},'2026-10-22':{label:'Herfstvakantie',color:'#fff3e0',type:'vakantie'},'2026-10-23':{label:'Herfstvakantie',color:'#fff3e0',type:'vakantie'},'2026-10-27':{label:'Studiemiddag 1/3',color:'#d4a000',type:'studiedag'},'2026-10-30':{label:'Toetsweek 1',color:'#1C829E',type:'roostervrij'},'2026-11-02':{label:'Toetsweek 1',color:'#1C829E',type:'roostervrij'},'2026-11-03':{label:'Toetsweek 1 / Teamverg. 2/5',color:'#1C829E',type:'roostervrij'},'2026-11-04':{label:'Toetsweek 1',color:'#1C829E',type:'roostervrij'},'2026-11-05':{label:'Toetsweek 1',color:'#1C829E',type:'roostervrij'},'2026-11-06':{label:'Toetsweek 1 reserve',color:'#1C829E',type:'roostervrij'},'2026-11-09':{label:'Ontdekmiddag 1',color:'#008972',type:'roostervrij'},'2026-11-10':{label:'Ontdekmiddag 2',color:'#008972',type:'roostervrij'},'2026-11-11':{label:'Informatieavond nieuwe ouders',color:'#008972',type:'roostervrij'},'2026-11-12':{label:'Informatieavond nieuwe ouders',color:'#008972',type:'roostervrij'},'2026-11-16':{label:'Llb klas 1 (verkort)',color:'#d4a000',type:'studiedag'},'2026-11-17':{label:'Llb klas 2 (verkort)',color:'#d4a000',type:'studiedag'},'2026-11-23':{label:'Llb klas 3 (verkort)',color:'#d4a000',type:'studiedag'},'2026-11-24':{label:'Llb klas 4 (verkort)',color:'#d4a000',type:'studiedag'},'2026-11-25':{label:'Llb klas 5/6 (verkort)',color:'#d4a000',type:'studiedag'},'2026-11-26':{label:'Banenfestival',color:'#008972',type:'roostervrij'},'2026-12-01':{label:'Organisatiemiddag 3/10',color:'#d4a000',type:'roostervrij'},'2026-12-02':{label:'Herkansingen toetsweek 1',color:'#1C829E',type:'roostervrij'},'2026-12-04':{label:'Sinterklaas onderbouw',color:'#EB6334',type:'roostervrij'},'2026-12-08':{label:'Vaksectie 2/6',color:'#d4a000',type:'roostervrij'},'2026-12-15':{label:'Organisatiemiddag 4/10',color:'#d4a000',type:'roostervrij'},'2026-12-18':{label:'Kerstborrel (verkort)',color:'#008972',type:'studiedag'},'2027-01-04':{label:'Jaaropening',color:'#1C829E',type:'studiedag'},'2027-01-05':{label:'Teamvergadering 3/5',color:'#8B5CF6',type:'roostervrij'},'2027-01-12':{label:'Toetsweek 2',color:'#1C829E',type:'roostervrij'},'2027-01-13':{label:'Toetsweek 2',color:'#1C829E',type:'roostervrij'},'2027-01-14':{label:'Toetsweek 2',color:'#1C829E',type:'roostervrij'},'2027-01-15':{label:'Toetsweek 2 / Open huis',color:'#1C829E',type:'roostervrij'},'2027-01-18':{label:'Toetsweek 2',color:'#1C829E',type:'roostervrij'},'2027-01-19':{label:'Toetsweek 2',color:'#1C829E',type:'roostervrij'},'2027-01-20':{label:'Open huis',color:'#008972',type:'roostervrij'},'2027-01-21':{label:'Open huis',color:'#008972',type:'roostervrij'},'2027-01-25':{label:'Inhaalmiddag toetsweek 2',color:'#1C829E',type:'roostervrij'},'2027-02-02':{label:'Inleveren PWS definitief',color:'#d4a000',type:'roostervrij'}>
